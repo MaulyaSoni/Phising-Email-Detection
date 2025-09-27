@@ -276,6 +276,26 @@
                                     <div id="warningSigns"></div>
                                 </div>
                             </div>
+
+                            <!-- Automatic Learning Status -->
+                            <div class="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded border-left-info">
+                                <h6><i class="fas fa-robot text-primary"></i> Automatic Continuous Learning</h6>
+                                <p class="mb-2 text-muted">
+                                    <i class="fas fa-cogs"></i> The AI automatically learns from each prediction to improve accuracy.
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-success">
+                                            <i class="fas fa-check-circle"></i> Auto-training: <strong>Enabled</strong>
+                                        </small>
+                                    </div>
+                                    <!-- <div class="col-md-6">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="showTrainingStats()">
+                                            <i class="fas fa-chart-line"></i> View Learning Progress
+                                        </button>
+                                    </div> -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -304,21 +324,38 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // DOM Elements
-        const emailText = document.getElementById('emailText');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const resultsSection = document.getElementById('resultsSection');
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing application...');
+            
+            // DOM Elements
+            const emailText = document.getElementById('emailText');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultsSection = document.getElementById('resultsSection');
 
-        // Event Listeners
-        analyzeBtn.addEventListener('click', analyzeEmail);
-        clearBtn.addEventListener('click', clearForm);
-        
-        // Load sample emails on page load
-        document.addEventListener('DOMContentLoaded', loadSampleEmails);
+            // Check if elements exist
+            if (!emailText || !analyzeBtn || !clearBtn || !loadingSpinner || !resultsSection) {
+                console.error('Some DOM elements are missing!');
+                console.log('emailText:', emailText);
+                console.log('analyzeBtn:', analyzeBtn);
+                console.log('clearBtn:', clearBtn);
+                console.log('loadingSpinner:', loadingSpinner);
+                console.log('resultsSection:', resultsSection);
+                return;
+            }
 
-        async function analyzeEmail() {
+            console.log('All DOM elements found, setting up event listeners...');
+
+            // Event Listeners
+            analyzeBtn.addEventListener('click', analyzeEmail);
+            clearBtn.addEventListener('click', clearForm);
+            
+            console.log('Event listeners set up successfully');
+            
+            // Function definitions
+            async function analyzeEmail() {
             const text = emailText.value.trim();
             
             if (!text) {
@@ -356,6 +393,9 @@
         }
 
         function displayResults(result) {
+            // Display automatic learning status
+            displayAutomaticLearningStatus(result);
+            
             // Update result header
             const resultHeader = document.getElementById('resultHeader');
             const resultText = document.getElementById('resultText');
@@ -449,6 +489,70 @@
                 console.error('Failed to load sample emails:', error);
             }
         }
+
+        // Display automatic learning status
+        function displayAutomaticLearningStatus(result) {
+            if (result.automatic_learning && result.automatic_learning.auto_labeled) {
+                console.log(`🤖 Auto-labeled as: ${result.automatic_learning.label} (${result.automatic_learning.confidence_level})`);
+            }
+        }
+
+        // Function to show training statistics
+        async function showTrainingStats() {
+            try {
+                const response = await fetch('/training_stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    const config = data.continuous_learning;
+                    
+                    const message = `
+🤖 **AUTOMATIC CONTINUOUS LEARNING STATISTICS**
+
+📊 **Training Data:**
+• Total Examples: ${stats.total_examples}
+• Phishing Examples: ${stats.phishing_examples}
+• Legitimate Examples: ${stats.legitimate_examples}
+• Auto-Labeled: ${stats.auto_labeled || 0}
+• High Confidence: ${stats.high_confidence || 0}
+• User Corrections: ${stats.user_corrections}
+
+🧠 **Model Info:**
+• Current Version: ${stats.model_version}
+• Last Retrain: ${stats.last_retrain ? new Date(stats.last_retrain).toLocaleString() : 'Never'}
+
+⚙️ **Automatic Learning Config:**
+• Auto-Learning: ${config.automatic_learning_enabled ? '✅ ENABLED' : '❌ Disabled'}
+• Confidence Threshold: ${config.auto_label_confidence_threshold}
+• Retrain Threshold: ${config.retrain_threshold} examples
+• Max Training Examples: ${config.max_training_examples}
+
+📈 **Learning Status:**
+${stats.total_examples >= config.min_examples_for_retrain ? 
+  '✅ Ready for retraining!' : 
+  `⏳ Need ${config.min_examples_for_retrain - stats.total_examples} more examples`}
+
+🚀 **Next Retrain Triggers:**
+• Every ${config.retrain_threshold} examples
+• 20+ auto-labeled examples
+• 15+ high confidence examples
+• 5+ user corrections
+                    `;
+                    
+                    alert(message);
+                } else {
+                    alert('Failed to load training statistics: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading training stats:', error);
+                alert('Error loading training statistics. Please try again.');
+            }
+        }
+
+            // Load sample emails after all functions are defined
+            loadSampleEmails();
+        }); // End of DOMContentLoaded event listener
     </script>
 </body>
 </html>
