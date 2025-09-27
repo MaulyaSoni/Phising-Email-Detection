@@ -6,6 +6,8 @@ Features advanced detection for BEC, tech support scams, and sophisticated phish
 from flask import Flask, render_template, request, jsonify
 import sys
 import os
+
+# Add the parent directory to Python path to import from src
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.ultimate_model import UltimatePhishingDetector
@@ -23,13 +25,13 @@ def load_model():
     global detector
     try:
         detector = UltimatePhishingDetector()
-        model_path = '../models/ultimate_phishing_model.pkl'
         
-        # Try different paths
+        # Try different paths relative to the web directory
         paths_to_try = [
-            model_path,
+            os.path.join(os.path.dirname(__file__), '..', 'models', 'ultimate_phishing_model.pkl'),
+            '../models/ultimate_phishing_model.pkl',
             'models/ultimate_phishing_model.pkl',
-            os.path.join(os.path.dirname(__file__), '..', 'models', 'ultimate_phishing_model.pkl')
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'models', 'ultimate_phishing_model.pkl')
         ]
         
         for path in paths_to_try:
@@ -48,50 +50,45 @@ def load_model():
 
 def calculate_safety_score(phishing_prob, analysis):
     """
-    Calculate a more accurate safety score based on model prediction and detailed analysis
-    This fixes the issue where low safety scores were showing as legitimate
+    Calculate safety score that properly correlates with phishing probability
+    Safety Score = (1 - Phishing Probability) * 100, with minor adjustments for indicators
     """
-    # Start with the model's confidence
-    base_safety = (1 - phishing_prob) * 100  # Convert to safety percentage
+    # Base safety score follows mathematical principle: Safety = 100 - (Phishing% * 100)
+    base_safety = (1 - phishing_prob) * 100
     
-    # Apply penalties based on detected indicators
+    # Apply small penalties for detected indicators (max 15 points total to maintain correlation)
     penalty = 0
     
-    # Heavy penalties for critical indicators (with safe key access)
-    penalty += len(analysis.get('bec_indicators', [])) * 10  # BEC is very dangerous
-    penalty += len(analysis.get('tech_scam_indicators', [])) * 8
-    penalty += len(analysis.get('credential_harvesting', [])) * 12  # Credential theft is critical
-    penalty += len(analysis.get('suspicious_urls', [])) * 10
-    penalty += len(analysis.get('urgency_indicators', [])) * 5
-    penalty += len(analysis.get('financial_indicators', [])) * 8
-    penalty += len(analysis.get('brand_impersonation', [])) * 6
+    # Light penalties to maintain mathematical consistency
+    penalty += len(analysis.get('bec_indicators', [])) * 2
+    penalty += len(analysis.get('tech_scam_indicators', [])) * 2
+    penalty += len(analysis.get('credential_harvesting', [])) * 3
+    penalty += len(analysis.get('suspicious_urls', [])) * 2
+    penalty += len(analysis.get('urgency_indicators', [])) * 1
+    penalty += len(analysis.get('financial_indicators', [])) * 2
+    penalty += len(analysis.get('brand_impersonation', [])) * 1
+    
+    # Cap penalty at 15 to maintain mathematical relationship
+    penalty = min(penalty, 15)
     
     # Calculate final safety score
     safety_score = max(0, base_safety - penalty)
     
-    # Ensure consistency: if model says phishing with high confidence, safety should be low
-    if phishing_prob > 0.7:  # High phishing probability
-        safety_score = min(safety_score, 20)  # Cap at 20
-    elif phishing_prob > 0.5:  # Moderate phishing probability
-        safety_score = min(safety_score, 40)  # Cap at 40
-    
-    return safety_score
+    # Round to 1 decimal place for cleaner display
+    return round(safety_score, 1)
 
 def determine_verdict(phishing_prob, safety_score):
     """
-    Determine final verdict based on probability and safety score
-    This ensures consistency between the model prediction and the displayed result
+    Determine final verdict based primarily on phishing probability for mathematical consistency
     """
-    # Prioritize safety score for very dangerous emails
-    if safety_score < 10:
-        return "CRITICAL", "This email is extremely dangerous - likely phishing/scam"
-    elif safety_score < 30:
-        return "PHISHING", "This email contains multiple dangerous indicators"
-    elif phishing_prob >= 0.7:
+    # Use phishing probability as primary indicator for consistency
+    if phishing_prob >= 0.8:
+        return "CRITICAL", "This email is extremely likely to be a phishing attempt"
+    elif phishing_prob >= 0.6:
         return "PHISHING", "This email is highly likely to be a phishing attempt"
-    elif phishing_prob >= 0.5:
-        return "SUSPICIOUS", "This email shows multiple warning signs of phishing"
-    elif phishing_prob >= 0.3:
+    elif phishing_prob >= 0.4:
+        return "SUSPICIOUS", "This email shows warning signs of phishing"
+    elif phishing_prob >= 0.2:
         return "QUESTIONABLE", "This email has some suspicious characteristics"
     else:
         return "LEGITIMATE", "This email appears to be safe"
@@ -127,11 +124,10 @@ def predict():
         # Determine final verdict
         verdict, verdict_description = determine_verdict(phishing_prob, safety_score)
         
-        # Prepare response in the format expected by the frontend
-        # Use a more sophisticated logic that considers both model prediction and safety score
-        if phishing_prob >= 0.5 or safety_score < 30:
+        # Prepare response with mathematically consistent logic
+        if phishing_prob >= 0.5:
             prediction_text = "Phishing"
-            confidence = phishing_prob if phishing_prob >= 0.5 else (1 - safety_score/100)
+            confidence = phishing_prob
         else:
             prediction_text = "Legitimate" 
             confidence = 1 - phishing_prob
