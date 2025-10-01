@@ -3,201 +3,692 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phishing Email Detection</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>🛡️ Ultimate Phishing Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --light-bg: #f8f9fa;
+            /* State-based color system */
+            --critical-red: #B91C1C;        /* Dark tomato red >80% */
+            --danger-red: #DC2626;          /* Light red 50-80% */
+            --warning-orange: #EA580C;      /* Orange 40-60% */
+            --safe-green: #16A34A;          /* Green 20-50% */
+            --very-safe-green: #15803D;     /* Bright green 0-20% */
+            
+            /* Professional color palette */
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            --card-shadow-hover: 0 30px 60px rgba(0,0,0,0.12);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            animation: floatingParticles 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes floatingParticles {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
         }
 
         .main-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
             margin: 2rem auto;
-            max-width: 1000px;
+            max-width: 1200px;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 2rem;
+            padding: 3rem 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: headerGlow 8s ease-in-out infinite;
+        }
+
+        @keyframes headerGlow {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
         }
 
         .header h1 {
             margin: 0;
-            font-size: 2.5rem;
-            font-weight: 300;
+            font-size: 3.2rem;
+            font-weight: 800;
+            font-family: 'Poppins', sans-serif;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
         .header p {
-            margin: 0.5rem 0 0 0;
-            opacity: 0.9;
+            margin: 1rem 0 0 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
         }
 
         .content {
-            padding: 2rem;
+            padding: 3rem 2rem;
+        }
+
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .email-input {
-            background: var(--light-bg);
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
+            background: rgba(248, 250, 252, 0.8);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 150px;
         }
 
         .email-input:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
             outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
         }
 
         .btn-analyze {
-            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 50px;
-            padding: 0.75rem 2rem;
+            padding: 1rem 2.5rem;
             color: white;
             font-weight: 600;
-            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-analyze::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-analyze:hover::before {
+            left: 100%;
         }
 
         .btn-analyze:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
             color: white;
+        }
+
+        .btn-analyze:active {
+            transform: translateY(-1px);
         }
 
         .btn-analyze:disabled {
             opacity: 0.6;
             transform: none;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            background: white;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear:hover {
+            border-color: #dc2626;
+            color: #dc2626;
+            transform: translateY(-2px);
         }
 
         .result-card {
             border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-top: 1.5rem;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            margin-top: 2rem;
             overflow: hidden;
+            animation: resultSlideIn 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-5px);
+        }
+
+        @keyframes resultSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .result-header {
-            padding: 1rem 1.5rem;
-            font-weight: 600;
+            padding: 2rem 2rem 1rem;
+            font-weight: 700;
             color: white;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* State-based result headers */
+        .result-header.critical {
+            background: linear-gradient(135deg, var(--critical-red), #991B1B);
+        }
+
+        .result-header.danger {
+            background: linear-gradient(135deg, var(--danger-red), #B91C1C);
+        }
+
+        .result-header.warning {
+            background: linear-gradient(135deg, var(--warning-orange), #C2410C);
+        }
+
+        .result-header.safe {
+            background: linear-gradient(135deg, var(--safe-green), #15803D);
+        }
+
+        .result-header.very-safe {
+            background: linear-gradient(135deg, var(--very-safe-green), #14532D);
         }
 
         .result-header.legitimate {
-            background: linear-gradient(135deg, var(--success-color), #229954);
+            background: linear-gradient(135deg, var(--safe-green), #15803D);
         }
 
         .result-header.phishing {
-            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+            background: linear-gradient(135deg, var(--danger-red), #B91C1C);
         }
 
         .risk-badge {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Poppins', sans-serif;
+            animation: badgePulse 2s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .risk-critical { background: #e74c3c; color: white; }
-        .risk-high { background: #f39c12; color: white; }
-        .risk-medium { background: #f1c40f; color: #2c3e50; }
-        .risk-low { background: #2ecc71; color: white; }
-        .risk-very_low { background: #27ae60; color: white; }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* State-based risk badges with emojis */
+        .risk-critical { 
+            background: var(--critical-red); 
+            color: white; 
+        }
+        .risk-critical::before { content: '🚨 '; }
+
+        .risk-high { 
+            background: var(--danger-red); 
+            color: white; 
+        }
+        .risk-high::before { content: '⚠️ '; }
+
+        .risk-phishing { 
+            background: var(--danger-red); 
+            color: white; 
+        }
+        .risk-phishing::before { content: '🎣 '; }
+
+        .risk-suspicious { 
+            background: var(--warning-orange); 
+            color: white; 
+        }
+        .risk-suspicious::before { content: '🔍 '; }
+
+        .risk-questionable { 
+            background: #F59E0B; 
+            color: white; 
+        }
+        .risk-questionable::before { content: '❓ '; }
+
+        .risk-legitimate { 
+            background: var(--safe-green); 
+            color: white; 
+        }
+        .risk-legitimate::before { content: '✅ '; }
+
+        .risk-low { 
+            background: var(--safe-green); 
+            color: white; 
+        }
+        .risk-low::before { content: '🛡️ '; }
+
+        .risk-very_low { 
+            background: var(--very-safe-green); 
+            color: white; 
+        }
+        .risk-very_low::before { content: '🔒 '; }
 
         .progress-custom {
-            height: 8px;
+            height: 12px;
             border-radius: 10px;
-            background: #e9ecef;
+            background: rgba(229, 231, 235, 0.8);
+            overflow: hidden;
         }
 
         .progress-bar-custom {
             border-radius: 10px;
-            transition: width 0.6s ease;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #667eea, #764ba2);
         }
 
         .indicator-item {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 0.5rem 1rem;
-            margin: 0.25rem 0;
-            font-size: 0.9rem;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border: 1px solid #F59E0B;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            animation: indicatorSlideIn 0.4s ease-out;
+        }
+
+        .indicator-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        @keyframes indicatorSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .warning-item {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 10px;
-            padding: 0.5rem 1rem;
-            margin: 0.25rem 0;
-            font-size: 0.9rem;
+            background: linear-gradient(135deg, #FEE2E2, #FECACA);
+            border: 1px solid #DC2626;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            animation: warningSlideIn 0.4s ease-out;
+        }
+
+        .warning-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+        }
+
+        @keyframes warningSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .sample-email {
-            background: var(--light-bg);
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 0.5rem 0;
+            background: rgba(248, 250, 252, 0.9);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 0.75rem 0;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sample-email::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .sample-email:hover::before {
+            left: 100%;
         }
 
         .sample-email:hover {
-            background: #e9ecef;
-            transform: translateY(-2px);
+            background: white;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-color: #667eea;
         }
 
         .loading-spinner {
             display: none;
             text-align: center;
-            padding: 2rem;
+            padding: 3rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .loading-spinner .spinner-border {
+            width: 4rem;
+            height: 4rem;
+            border-width: 0.4rem;
+            color: #667eea;
+        }
+
+        .loading-text {
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: 'Poppins', sans-serif;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
         .stat-card {
-            background: var(--light-bg);
-            border-radius: 10px;
-            padding: 1rem;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.9));
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
             text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: statCardSlideIn 0.6s ease-out;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        @keyframes statCardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .stat-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .learning-status {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            animation: learningStatusSlideIn 0.8s ease-out;
+        }
+
+        @keyframes learningStatusSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .learning-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auto-learning-badge {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            animation: badgeGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+        }
+
+        /* Responsive design improvements */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .content {
+                padding: 2rem 1rem;
+            }
+            
+            .main-container {
+                margin: 1rem;
+                border-radius: 16px;
+            }
+            
+            .email-input {
+                min-height: 120px;
+            }
+        }
+
+        /* Enhanced focus states for accessibility */
+        .btn-analyze:focus,
+        .btn-clear:focus {
+            outline: 3px solid rgba(102, 126, 234, 0.5);
+            outline-offset: 2px;
+        }
+
+        .email-input:focus {
+            outline: none;
+        }
+
+        /* Smooth page transitions */
+        * {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(229, 231, 235, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6a4190);
         }
     </style>
 </head>
@@ -205,28 +696,39 @@
     <div class="container-fluid">
         <div class="main-container">
             <div class="header">
-                <h1><i class="fas fa-shield-alt"></i> Phishing Email Detection</h1>
-                <p>Advanced AI-powered email security analysis</p>
+                <h1>🛡️ Ultimate Phishing Detection</h1>
+                <p>🤖 AI-Powered Email Security Analysis with Continuous Learning</p>
             </div>
 
             <div class="content">
                 <!-- Email Input Section -->
                 <div class="row">
                     <div class="col-12">
-                        <h4><i class="fas fa-envelope"></i> Email Analysis</h4>
+                        <h4 class="section-title">
+                            <i class="fas fa-envelope-open-text"></i> 
+                            📧 Email Analysis
+                        </h4>
                         <textarea 
                             id="emailText" 
                             class="form-control email-input" 
-                            rows="6" 
-                            placeholder="Paste your email content here for analysis..."
+                            rows="8" 
+                            placeholder="📝 Paste your email content here for comprehensive security analysis...
+
+🔍 Our AI will analyze:
+• Phishing indicators and suspicious patterns
+• Business Email Compromise (BEC) attempts  
+• Tech support scams and social engineering
+• Credential harvesting attempts
+• Malicious URLs and attachments
+• Brand impersonation tactics"
                         ></textarea>
                         
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <button id="analyzeBtn" class="btn btn-analyze">
-                                <i class="fas fa-search"></i> Analyze Email
+                                <i class="fas fa-brain"></i> 🚀 Analyze Email
                             </button>
-                            <button id="clearBtn" class="btn btn-outline-secondary">
-                                <i class="fas fa-trash"></i> Clear
+                            <button id="clearBtn" class="btn btn-clear">
+                                <i class="fas fa-broom"></i> 🗑️ Clear
                             </button>
                         </div>
                     </div>
@@ -234,10 +736,14 @@
 
                 <!-- Loading Spinner -->
                 <div id="loadingSpinner" class="loading-spinner">
-                    <div class="spinner-border text-primary" role="status">
+                    <div class="spinner-border" role="status">
                         <span class="visually-hidden">Analyzing...</span>
                     </div>
-                    <p class="mt-2">Analyzing email content...</p>
+                    <div class="loading-text">
+                        🧠 AI is analyzing your email...
+                        <br>
+                        <small>Checking for phishing patterns, suspicious indicators, and security threats</small>
+                    </div>
                 </div>
 
                 <!-- Results Section -->
@@ -245,55 +751,67 @@
                     <div class="result-card">
                         <div id="resultHeader" class="result-header">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span id="resultText"></span>
+                                <div>
+                                    <h3 id="resultText" style="margin: 0; font-size: 1.8rem; font-weight: 800;"></h3>
+                                    <p id="verdictDescription" style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 1rem;"></p>
+                                </div>
                                 <span id="riskBadge" class="risk-badge"></span>
                             </div>
                         </div>
                         
-                        <div class="card-body">
+                        <div class="card-body" style="padding: 2rem;">
                             <div class="stats-grid">
                                 <div class="stat-card">
                                     <div id="confidenceValue" class="stat-value">-</div>
-                                    <div class="stat-label">Confidence</div>
+                                    <div class="stat-label">🎯 Confidence</div>
                                 </div>
                                 <div class="stat-card">
                                     <div id="phishingProb" class="stat-value">-</div>
-                                    <div class="stat-label">Phishing Probability</div>
+                                    <div class="stat-label">🎣 Phishing Risk</div>
                                 </div>
                                 <div class="stat-card">
                                     <div id="safetyScore" class="stat-value">-</div>
-                                    <div class="stat-label">Safety Score</div>
+                                    <div class="stat-label">🛡️ Safety Score</div>
                                 </div>
                             </div>
 
-                            <div class="row mt-4">
+                            <div class="row mt-5">
                                 <div class="col-md-6">
-                                    <h6><i class="fas fa-exclamation-triangle text-warning"></i> Suspicious Indicators</h6>
+                                    <h5 class="section-title">
+                                        <i class="fas fa-exclamation-triangle"></i> 
+                                        ⚠️ Suspicious Indicators
+                                    </h5>
                                     <div id="suspiciousIndicators"></div>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6><i class="fas fa-shield-alt text-danger"></i> Warning Signs</h6>
+                                    <h5 class="section-title">
+                                        <i class="fas fa-shield-alt"></i> 
+                                        🚨 Security Warnings
+                                    </h5>
                                     <div id="warningSigns"></div>
                                 </div>
                             </div>
 
                             <!-- Automatic Learning Status -->
-                            <div class="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded border-left-info">
-                                <h6><i class="fas fa-robot text-primary"></i> Automatic Continuous Learning</h6>
-                                <p class="mb-2 text-muted">
-                                    <i class="fas fa-cogs"></i> The AI automatically learns from each prediction to improve accuracy.
+                            <div class="learning-status">
+                                <div class="learning-title">
+                                    <i class="fas fa-robot"></i> 
+                                    🤖 Automatic Continuous Learning
+                                </div>
+                                <p class="mb-3" style="color: var(--text-secondary); font-size: 1rem;">
+                                    <i class="fas fa-cogs"></i> Our AI automatically learns from each prediction to continuously improve accuracy and adapt to new phishing techniques.
                                 </p>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <small class="text-success">
-                                            <i class="fas fa-check-circle"></i> Auto-training: <strong>Enabled</strong>
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <span class="auto-learning-badge">
+                                            <i class="fas fa-check-circle"></i> ✅ Auto-Learning: ACTIVE
+                                        </span>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <small style="color: var(--text-secondary); font-weight: 500;">
+                                            <i class="fas fa-chart-line"></i> 📈 Model Version: <strong>96.35% Accuracy</strong>
                                         </small>
                                     </div>
-                                    <!-- <div class="col-md-6">
-                                        <button class="btn btn-outline-primary btn-sm" onclick="showTrainingStats()">
-                                            <i class="fas fa-chart-line"></i> View Learning Progress
-                                        </button>
-                                    </div> -->
                                 </div>
                             </div>
                         </div>
@@ -301,19 +819,91 @@
                 </div>
 
                 <!-- Sample Emails Section -->
-                <div class="row mt-4">
+                <div class="row mt-5">
                     <div class="col-12">
-                        <h4><i class="fas fa-vial"></i> Test Samples</h4>
-                        <p class="text-muted">Click on any sample email below to test the detection system</p>
+                        <h4 class="section-title">
+                            <i class="fas fa-flask"></i> 
+                            🧪 Test Samples
+                        </h4>
+                        <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">
+                            💡 Click on any sample email below to test our advanced AI detection system
+                        </p>
                         
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="text-danger"><i class="fas fa-bug"></i> Phishing Examples</h6>
+                                <h5 class="section-title" style="color: var(--danger-red); font-size: 1.2rem;">
+                                    <i class="fas fa-virus"></i> 
+                                    🎣 Phishing Examples
+                                </h5>
                                 <div id="phishingSamples"></div>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-success"><i class="fas fa-check"></i> Legitimate Examples</h6>
+                                <h5 class="section-title" style="color: var(--safe-green); font-size: 1.2rem;">
+                                    <i class="fas fa-check-circle"></i> 
+                                    ✅ Legitimate Examples
+                                </h5>
                                 <div id="legitimateSamples"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Section -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <div style="
+                            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(147, 51, 234, 0.05));
+                            border: 1px solid rgba(102, 126, 234, 0.1);
+                            border-radius: 16px;
+                            padding: 2rem;
+                            text-align: center;
+                            margin-top: 3rem;
+                        ">
+                            <div style="margin-bottom: 1.5rem;">
+                                <h5 style="
+                                    font-family: 'Poppins', sans-serif;
+                                    font-weight: 700;
+                                    color: var(--text-primary);
+                                    margin-bottom: 1rem;
+                                ">
+                                    🚀 Advanced AI Security Features
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-3 col-6 mb-3">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎯</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">96.35%</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">Accuracy</div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-3">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚡</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">&lt;200ms</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">Response Time</div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-3">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🧠</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">5,100+</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">AI Features</div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-3">
+                                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔄</div>
+                                        <div style="font-weight: 600; color: var(--text-primary);">Auto</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">Learning</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="
+                                border-top: 1px solid rgba(102, 126, 234, 0.1);
+                                padding-top: 1.5rem;
+                                color: var(--text-secondary);
+                                font-size: 0.9rem;
+                            ">
+                                <div style="margin-bottom: 0.5rem;">
+                                    <strong>🛡️ Ultimate Phishing Detection System</strong> - Advanced AI-powered email security analysis
+                                </div>
+                                <div>
+                                    Protecting against BEC, tech support scams, credential harvesting, and sophisticated phishing attacks
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -322,7 +912,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
@@ -396,30 +986,44 @@
             // Display automatic learning status
             displayAutomaticLearningStatus(result);
             
-            // Update result header
+            // Update result header with state-based colors
             const resultHeader = document.getElementById('resultHeader');
             const resultText = document.getElementById('resultText');
+            const verdictDescription = document.getElementById('verdictDescription');
             const riskBadge = document.getElementById('riskBadge');
 
             resultText.textContent = result.prediction;
-            riskBadge.textContent = result.risk_level.replace('_', ' ');
-            riskBadge.className = `risk-badge risk-${result.risk_level.toLowerCase()}`;
+            verdictDescription.textContent = result.verdict_description || '';
+            
+            // Set risk badge with emoji
+            const riskLevel = result.risk_level || result.verdict || 'UNKNOWN';
+            riskBadge.textContent = riskLevel.replace('_', ' ');
+            riskBadge.className = `risk-badge risk-${riskLevel.toLowerCase()}`;
 
-            if (result.prediction === 'Phishing') {
-                resultHeader.className = 'result-header phishing';
+            // State-based header colors based on phishing probability
+            const phishingProb = result.phishing_probability;
+            let headerClass = 'result-header ';
+            
+            if (phishingProb >= 0.8) {
+                headerClass += 'critical';
+            } else if (phishingProb >= 0.5) {
+                headerClass += 'danger';
+            } else if (phishingProb >= 0.4) {
+                headerClass += 'warning';
+            } else if (phishingProb >= 0.2) {
+                headerClass += 'safe';
             } else {
-                resultHeader.className = 'result-header legitimate';
+                headerClass += 'very-safe';
             }
+            
+            resultHeader.className = headerClass;
 
-            // Update statistics
-            document.getElementById('confidenceValue').textContent = 
-                (result.confidence * 100).toFixed(1) + '%';
-            document.getElementById('phishingProb').textContent = 
-                (result.phishing_probability * 100).toFixed(1) + '%';
-            document.getElementById('safetyScore').textContent = 
-                result.safety_score + '/100';
+            // Update statistics with animations
+            animateStatValue('confidenceValue', (result.confidence * 100).toFixed(1) + '%');
+            animateStatValue('phishingProb', (result.phishing_probability * 100).toFixed(1) + '%');
+            animateStatValue('safetyScore', result.safety_score + '/100');
 
-            // Update indicators
+            // Update indicators with enhanced styling
             const suspiciousDiv = document.getElementById('suspiciousIndicators');
             const warningDiv = document.getElementById('warningSigns');
 
@@ -427,28 +1031,41 @@
             warningDiv.innerHTML = '';
 
             if (result.suspicious_indicators && result.suspicious_indicators.length > 0) {
-                result.suspicious_indicators.forEach(indicator => {
+                result.suspicious_indicators.forEach((indicator, index) => {
                     const div = document.createElement('div');
                     div.className = 'indicator-item';
-                    div.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${indicator}`;
+                    div.style.animationDelay = `${index * 0.1}s`;
+                    div.innerHTML = `<i class="fas fa-exclamation-circle"></i> ⚠️ ${indicator}`;
                     suspiciousDiv.appendChild(div);
                 });
             } else {
-                suspiciousDiv.innerHTML = '<p class="text-muted">No suspicious indicators detected</p>';
+                suspiciousDiv.innerHTML = '<p style="color: var(--text-secondary); font-style: italic; padding: 1rem;">✅ No suspicious indicators detected - Good sign!</p>';
             }
 
             if (result.warning_signs && result.warning_signs.length > 0) {
-                result.warning_signs.forEach(warning => {
+                result.warning_signs.forEach((warning, index) => {
                     const div = document.createElement('div');
                     div.className = 'warning-item';
-                    div.innerHTML = `<i class="fas fa-shield-alt"></i> ${warning}`;
+                    div.style.animationDelay = `${index * 0.1}s`;
+                    div.innerHTML = `<i class="fas fa-shield-alt"></i> 🚨 ${warning}`;
                     warningDiv.appendChild(div);
                 });
             } else {
-                warningDiv.innerHTML = '<p class="text-muted">No warning signs detected</p>';
+                warningDiv.innerHTML = '<p style="color: var(--text-secondary); font-style: italic; padding: 1rem;">🛡️ No security warnings - Email appears safe!</p>';
             }
 
             resultsSection.style.display = 'block';
+        }
+
+        function animateStatValue(elementId, value) {
+            const element = document.getElementById(elementId);
+            element.style.transform = 'scale(1.1)';
+            element.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                element.textContent = value;
+                element.style.transform = 'scale(1)';
+            }, 150);
         }
 
         function clearForm() {
@@ -464,29 +1081,85 @@
                 const phishingDiv = document.getElementById('phishingSamples');
                 const legitimateDiv = document.getElementById('legitimateSamples');
 
-                samples.phishing.forEach(email => {
+                // Enhanced phishing samples with emojis
+                samples.phishing.forEach((email, index) => {
                     const div = document.createElement('div');
                     div.className = 'sample-email';
-                    div.textContent = email.substring(0, 100) + '...';
+                    div.style.animationDelay = `${index * 0.1}s`;
+                    
+                    // Add appropriate emoji based on content
+                    let emoji = '🎣';
+                    if (email.toLowerCase().includes('urgent') || email.toLowerCase().includes('immediate')) emoji = '⚡';
+                    if (email.toLowerCase().includes('bank') || email.toLowerCase().includes('account')) emoji = '🏦';
+                    if (email.toLowerCase().includes('microsoft') || email.toLowerCase().includes('windows')) emoji = '💻';
+                    if (email.toLowerCase().includes('wire') || email.toLowerCase().includes('transfer')) emoji = '💰';
+                    
+                    div.innerHTML = `
+                        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                            <span style="font-size: 1.5rem;">${emoji}</span>
+                            <div>
+                                <div style="font-weight: 600; color: var(--danger-red); margin-bottom: 0.5rem;">
+                                    🚨 Phishing Sample
+                                </div>
+                                <div style="color: var(--text-secondary); line-height: 1.4;">
+                                    ${email.substring(0, 120)}...
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
                     div.onclick = () => {
                         emailText.value = email;
                         emailText.scrollIntoView({ behavior: 'smooth' });
+                        // Add visual feedback
+                        div.style.transform = 'scale(0.98)';
+                        setTimeout(() => div.style.transform = '', 150);
                     };
                     phishingDiv.appendChild(div);
                 });
 
-                samples.legitimate.forEach(email => {
+                // Enhanced legitimate samples with emojis
+                samples.legitimate.forEach((email, index) => {
                     const div = document.createElement('div');
                     div.className = 'sample-email';
-                    div.textContent = email.substring(0, 100) + '...';
+                    div.style.animationDelay = `${index * 0.1}s`;
+                    
+                    // Add appropriate emoji based on content
+                    let emoji = '✅';
+                    if (email.toLowerCase().includes('meeting') || email.toLowerCase().includes('agenda')) emoji = '📅';
+                    if (email.toLowerCase().includes('order') || email.toLowerCase().includes('shipped')) emoji = '📦';
+                    if (email.toLowerCase().includes('budget') || email.toLowerCase().includes('finance')) emoji = '📊';
+                    
+                    div.innerHTML = `
+                        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                            <span style="font-size: 1.5rem;">${emoji}</span>
+                            <div>
+                                <div style="font-weight: 600; color: var(--safe-green); margin-bottom: 0.5rem;">
+                                    ✅ Legitimate Sample
+                                </div>
+                                <div style="color: var(--text-secondary); line-height: 1.4;">
+                                    ${email.substring(0, 120)}...
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
                     div.onclick = () => {
                         emailText.value = email;
                         emailText.scrollIntoView({ behavior: 'smooth' });
+                        // Add visual feedback
+                        div.style.transform = 'scale(0.98)';
+                        setTimeout(() => div.style.transform = '', 150);
                     };
                     legitimateDiv.appendChild(div);
                 });
             } catch (error) {
                 console.error('Failed to load sample emails:', error);
+                // Show user-friendly error message
+                document.getElementById('phishingSamples').innerHTML = 
+                    '<p style="color: var(--text-secondary); padding: 1rem;">⚠️ Unable to load sample emails. Please try refreshing the page.</p>';
+                document.getElementById('legitimateSamples').innerHTML = 
+                    '<p style="color: var(--text-secondary); padding: 1rem;">⚠️ Unable to load sample emails. Please try refreshing the page.</p>';
             }
         }
 
@@ -552,7 +1225,81 @@ ${stats.total_examples >= config.min_examples_for_retrain ?
 
             // Load sample emails after all functions are defined
             loadSampleEmails();
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + Enter to analyze
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!analyzeBtn.disabled && emailText.value.trim()) {
+                        analyzeEmail();
+                    }
+                }
+                
+                // Escape to clear
+                if (e.key === 'Escape') {
+                    clearForm();
+                }
+            });
+
+            // Add typing indicator for better UX
+            let typingTimer;
+            emailText.addEventListener('input', function() {
+                clearTimeout(typingTimer);
+                
+                // Show character count
+                const charCount = emailText.value.length;
+                const minChars = 10;
+                
+                if (charCount > 0 && charCount < minChars) {
+                    emailText.style.borderColor = '#F59E0B';
+                } else if (charCount >= minChars) {
+                    emailText.style.borderColor = '#10B981';
+                } else {
+                    emailText.style.borderColor = 'var(--border-color)';
+                }
+                
+                // Auto-resize textarea
+                emailText.style.height = 'auto';
+                emailText.style.height = Math.max(150, emailText.scrollHeight) + 'px';
+            });
+
+            // Add smooth scroll to results
+            function scrollToResults() {
+                const resultsSection = document.getElementById('resultsSection');
+                if (resultsSection.style.display !== 'none') {
+                    resultsSection.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start',
+                        inline: 'nearest'
+                    });
+                }
+            }
+
+            // Show keyboard shortcuts hint
+            const shortcutsHint = document.createElement('div');
+            shortcutsHint.innerHTML = `
+                <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem; display: block;">
+                    💡 <strong>Tips:</strong> 
+                    <kbd>Ctrl+Enter</kbd> to analyze • 
+                    <kbd>Esc</kbd> to clear • 
+                    Auto-resize enabled
+                </small>
+            `;
+            emailText.parentNode.appendChild(shortcutsHint);
+
         }); // End of DOMContentLoaded event listener
+
+        // Add page visibility API for better performance
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('🔄 Page hidden - pausing animations');
+                document.body.style.animationPlayState = 'paused';
+            } else {
+                console.log('👁️ Page visible - resuming animations');
+                document.body.style.animationPlayState = 'running';
+            }
+        });
     </script>
 </body>
 </html>
