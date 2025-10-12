@@ -330,5 +330,41 @@
     "timestamp": "2025-10-01T18:48:54.578133",
     "text_length": 3830,
     "model_version": 1.0
+  },
+  {
+    "hash": "c69a1016b0561c8e5a3d257a53ee92f8",
+    "text": "Body: \"Complete your participation by verifying your payment information through this secure form.\"",
+    "label": "phishing",
+    "confidence": 0.9019709905219462,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "high",
+    "timestamp": "2025-10-11T21:29:16.160530",
+    "text_length": 99,
+    "model_version": 1.0
+  },
+  {
+    "hash": "4b4678789e8ee5c7525a89400bf4cec4",
+    "text": "Subject: Emergency Aid for Flood Victims\nBody: \"We’re collecting donations for an urgent cause. Transfer funds securely via our portal.\"",
+    "label": "phishing",
+    "confidence": 0.8769784432776488,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "high",
+    "timestamp": "2025-10-11T21:29:34.866505",
+    "text_length": 136,
+    "model_version": 1.0
+  },
+  {
+    "hash": "313f71428baf938012eb1935c2116e97",
+    "text": "1. Quarterly Meeting Invitation\nSubject: Invitation: Q4 Strategic Planning Meeting\nBody: \"Join us on October 15 at 2 PM for the Q4 strategic planning session in Conference Room A.\"",
+    "label": "legitimate",
+    "confidence": 0.8226431244312201,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "low_phishing_high_confidence",
+    "timestamp": "2025-10-11T21:30:06.564186",
+    "text_length": 180,
+    "model_version": 1.0
   }
 ]

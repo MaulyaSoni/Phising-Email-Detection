@@ -1,6 +1,6 @@
 @echo off
 echo ============================================================
-echo ULTIMATE PHISHING DETECTION SYSTEM - FIXED VERSION
+echo PHISHING DETECTION SYSTEM - DARK MODE EDITION
 echo ============================================================
 echo.
 
@@ -23,7 +23,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo Starting Ultimate Phishing Detection System...
+echo Starting Phishing Detection System...
 echo Web interface will be available at: http://localhost:5000
 echo.
 echo Press Ctrl+C to stop the server

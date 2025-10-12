@@ -1,0 +1,14 @@
+[
+  {
+    "hash": "2d49b52e48a1b0e9acea765788c9c27a",
+    "text": "Subject: URGENT: Suspicious Activity Detected on Your Account\n\nDear Valued Customer,\n\nOur security system has detected unauthorized login attempts from Russia, Nigeria, and China. \nFor your protection, we've temporarily restricted your account.\n\nSUSPICIOUS ACTIVITIES:\n- 7 failed login attempts from Moscow (IP: 185.220.101.42)\n- Wire transfer attempt of $4,850 blocked\n\nTO SECURE YOUR ACCOUNT:\nClick here: https://secure-banking-verification-portal.net/urgent-security-check\n\nThis link expires in 24 hours. Failure to verify will result in permanent account closure.\n\nSecurity Department\nFirst National Banking Corporation",
+    "label": "phishing",
+    "confidence": 0.7735405667503995,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "medium_with_indicators",
+    "timestamp": "2025-10-10T23:29:34.781088",
+    "text_length": 623,
+    "model_version": 1.0
+  }
+]

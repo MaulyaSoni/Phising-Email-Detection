@@ -6,24 +6,32 @@
     <title>🛡️ Ultimate Phishing Detection System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        /* Theme Variables - Dark Mode Only */
         :root {
-            /* State-based color system */
-            --critical-red: #B91C1C;        /* Dark tomato red >80% */
-            --danger-red: #DC2626;          /* Light red 50-80% */
-            --warning-orange: #EA580C;      /* Orange 40-60% */
-            --safe-green: #16A34A;          /* Green 20-50% */
-            --very-safe-green: #15803D;     /* Bright green 0-20% */
+            /* Premium Dark Theme */
+            --critical-red: #ff6b6b;
+            --danger-red: #ff5252;
+            --warning-orange: #ffa726;
+            --safe-green: #66bb6a;
+            --very-safe-green: #4caf50;
             
-            /* Professional color palette */
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --card-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            --card-shadow-hover: 0 30px 60px rgba(0,0,0,0.12);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
+            --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --card-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.6);
+            --glow-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(148, 163, 184, 0.1);
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-tertiary: #1e2139;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
         }
 
         * {
@@ -33,16 +41,16 @@
         }
 
         body {
-            background: var(--primary-gradient);
+            background: var(--bg-primary);
             min-height: 100vh;
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 400;
             line-height: 1.6;
             color: var(--text-primary);
             overflow-x: hidden;
+            position: relative;
         }
 
-        /* Animated background particles */
         body::before {
             content: '';
             position: fixed;
@@ -50,13 +58,37 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-            animation: floatingParticles 20s ease-in-out infinite;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
             pointer-events: none;
-            z-index: -1;
+            z-index: 0;
+        }
+
+        /* Animated particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
         }
 
         @keyframes floatingParticles {
@@ -66,16 +98,19 @@
         }
 
         .main-container {
-            background: var(--glass-bg);
+            background: var(--bg-secondary);
             backdrop-filter: blur(20px);
             border-radius: 24px;
             box-shadow: var(--card-shadow);
             margin: 2rem auto;
             max-width: 1200px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--border-color);
             animation: slideInUp 0.8s ease-out;
+            position: relative;
+            z-index: 1;
         }
+
 
         @keyframes slideInUp {
             from {
@@ -154,7 +189,7 @@
         }
 
         .email-input {
-            background: rgba(248, 250, 252, 0.8);
+            background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
             border-radius: 16px;
             padding: 1.5rem;
@@ -164,15 +199,22 @@
             font-size: 1rem;
             line-height: 1.6;
             resize: vertical;
-            min-height: 150px;
+            min-height: 180px;
+            color: var(--text-primary);
+            width: 100%;
         }
 
         .email-input:focus {
             border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2), var(--glow-shadow);
             outline: none;
-            background: rgba(255, 255, 255, 0.95);
-            transform: translateY(-2px);
+            background: var(--bg-primary);
+            transform: translateY(-2px) scale(1.01);
+        }
+
+        .email-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
         }
 
         .btn-analyze {
@@ -219,21 +261,23 @@
             transform: none;
             cursor: not-allowed;
         }
-
         .btn-clear {
             border: 2px solid var(--border-color);
             border-radius: 50px;
             padding: 1rem 2rem;
-            background: white;
+            background: transparent;
             color: var(--text-secondary);
             font-weight: 500;
+            font-family: 'Poppins', sans-serif;
             transition: all 0.3s ease;
         }
 
         .btn-clear:hover {
-            border-color: #dc2626;
-            color: #dc2626;
+            border-color: var(--danger-red);
+            color: var(--danger-red);
+            background: rgba(255, 82, 82, 0.1);
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 82, 82, 0.2);
         }
 
         .result-card {
@@ -396,20 +440,23 @@
         }
 
         .indicator-item {
-            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-            border: 1px solid #F59E0B;
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            border-left: 4px solid #fbbf24;
             border-radius: 12px;
             padding: 1rem 1.5rem;
             margin: 0.5rem 0;
             font-size: 0.95rem;
             font-weight: 500;
+            color: #fef3c7;
             transition: all 0.3s ease;
             animation: indicatorSlideIn 0.4s ease-out;
         }
 
         .indicator-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+            background: rgba(251, 191, 36, 0.25);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
         }
 
         @keyframes indicatorSlideIn {
@@ -424,20 +471,23 @@
         }
 
         .warning-item {
-            background: linear-gradient(135deg, #FEE2E2, #FECACA);
-            border: 1px solid #DC2626;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-left: 4px solid #ef4444;
             border-radius: 12px;
             padding: 1rem 1.5rem;
             margin: 0.5rem 0;
             font-size: 0.95rem;
             font-weight: 500;
+            color: #fecaca;
             transition: all 0.3s ease;
             animation: warningSlideIn 0.4s ease-out;
         }
 
         .warning-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+            background: rgba(239, 68, 68, 0.25);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
 
         @keyframes warningSlideIn {
@@ -452,7 +502,7 @@
         }
 
         .sample-email {
-            background: rgba(248, 250, 252, 0.9);
+            background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
             border-radius: 16px;
             padding: 1.5rem;
@@ -471,7 +521,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
             transition: left 0.5s;
         }
 
@@ -480,10 +530,10 @@
         }
 
         .sample-email:hover {
-            background: white;
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            border-color: #667eea;
+            background: var(--bg-secondary);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: var(--glow-shadow), 0 15px 35px rgba(102, 126, 234, 0.3);
+            border-color: var(--accent-primary);
         }
 
         .loading-spinner {
@@ -521,9 +571,9 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.9));
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
             padding: 2rem 1.5rem;
             text-align: center;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -539,19 +589,37 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: var(--primary-gradient);
             transform: scaleX(0);
             transition: transform 0.3s ease;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1), transparent);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease;
         }
 
         .stat-card:hover::before {
             transform: scaleX(1);
         }
 
+        .stat-card:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
         .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
-            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: var(--glow-shadow), 0 20px 40px rgba(102, 126, 234, 0.2);
+            border-color: var(--accent-primary);
         }
 
         @keyframes statCardSlideIn {
@@ -697,7 +765,7 @@
         <div class="main-container">
             <div class="header">
                 <h1>🛡️ Ultimate Phishing Detection</h1>
-                <p>🤖 AI-Powered Email Security Analysis with Continuous Learning</p>
+                <p>🤖 AI-Powered Email Security Analysis with Advanced URL Detection</p>
             </div>
 
             <div class="content">
@@ -775,20 +843,52 @@
                                 </div>
                             </div>
 
+                            <!-- URL Analysis Section -->
+                            <div id="urlAnalysisSection" class="mt-4" style="display: none;">
+                                <h5 class="section-title">
+                                    <i class="fas fa-link"></i> 
+                                    🔗 URL & Link Analysis
+                                </h5>
+                                <div style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 16px; padding: 1.5rem;">
+                                    <div class="row mb-3">
+                                        <div class="col-md-3 col-6 mb-2">
+                                            <strong>Total URLs:</strong> <span id="totalUrls" style="color: var(--accent-primary); font-weight: 700;">0</span>
+                                        </div>
+                                        <div class="col-md-3 col-6 mb-2">
+                                            <strong>Risk Score:</strong> <span id="urlRiskScore" style="color: var(--danger-red); font-weight: 700;">0</span>
+                                        </div>
+                                        <div class="col-md-3 col-6 mb-2">
+                                            <strong>Emails Found:</strong> <span id="emailCount" style="color: var(--text-primary); font-weight: 700;">0</span>
+                                        </div>
+                                        <div class="col-md-3 col-6 mb-2">
+                                            <strong>Phone Numbers:</strong> <span id="phoneCount" style="color: var(--text-primary); font-weight: 700;">0</span>
+                                        </div>
+                                    </div>
+                                    <div id="urlDetailsList"></div>
+                                </div>
+                            </div>
+
                             <div class="row mt-5">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <h5 class="section-title">
                                         <i class="fas fa-exclamation-triangle"></i> 
                                         ⚠️ Suspicious Indicators
                                     </h5>
                                     <div id="suspiciousIndicators"></div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <h5 class="section-title">
                                         <i class="fas fa-shield-alt"></i> 
                                         🚨 Security Warnings
                                     </h5>
                                     <div id="warningSigns"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5 class="section-title">
+                                        <i class="fas fa-check-circle"></i> 
+                                        ✅ Legitimate Indicators
+                                    </h5>
+                                    <div id="legitimateIndicators"></div>
                                 </div>
                             </div>
 
@@ -1054,7 +1154,123 @@
                 warningDiv.innerHTML = '<p style="color: var(--text-secondary); font-style: italic; padding: 1rem;">🛡️ No security warnings - Email appears safe!</p>';
             }
 
+            // Display legitimate indicators
+            const legitimateDiv = document.getElementById('legitimateIndicators');
+            legitimateDiv.innerHTML = '';
+            if (result.legitimate_indicators && result.legitimate_indicators.length > 0) {
+                result.legitimate_indicators.forEach((indicator, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'indicator-item';
+                    div.style.background = 'var(--success-bg)';
+                    div.style.borderColor = 'var(--success-border)';
+                    div.style.borderLeftColor = 'var(--success-text)';
+                    div.style.color = 'var(--success-text)';
+                    div.style.animationDelay = `${index * 0.1}s`;
+                    div.innerHTML = `<i class="fas fa-check-circle"></i> ✅ ${indicator}`;
+                    legitimateDiv.appendChild(div);
+                });
+            } else {
+                legitimateDiv.innerHTML = '<p style="color: var(--text-secondary); font-style: italic; padding: 1rem;">No legitimate indicators detected</p>';
+            }
+
+            // Display URL Analysis
+            if (result.url_analysis && result.url_analysis.total_urls > 0) {
+                const urlSection = document.getElementById('urlAnalysisSection');
+                urlSection.style.display = 'block';
+                
+                document.getElementById('totalUrls').textContent = result.url_analysis.total_urls;
+                document.getElementById('urlRiskScore').textContent = result.url_analysis.risk_score;
+                document.getElementById('emailCount').textContent = result.url_analysis.email_addresses.length;
+                document.getElementById('phoneCount').textContent = result.url_analysis.phone_numbers.length;
+                
+                const urlDetailsList = document.getElementById('urlDetailsList');
+                urlDetailsList.innerHTML = '';
+                
+                // Display all URLs
+                if (result.url_analysis.all_urls.length > 0) {
+                    const urlsHeader = document.createElement('h6');
+                    urlsHeader.style.marginTop = '1rem';
+                    urlsHeader.style.color = 'var(--text-primary)';
+                    urlsHeader.innerHTML = '<i class="fas fa-link"></i> All URLs Found:';
+                    urlDetailsList.appendChild(urlsHeader);
+                    
+                    result.url_analysis.all_urls.forEach(url => {
+                        const urlDiv = document.createElement('div');
+                        urlDiv.style.background = 'var(--bg-primary)';
+                        urlDiv.style.border = '1px solid var(--border-color)';
+                        urlDiv.style.borderRadius = '8px';
+                        urlDiv.style.padding = '0.75rem';
+                        urlDiv.style.marginBottom = '0.5rem';
+                        urlDiv.style.fontFamily = 'monospace';
+                        urlDiv.style.fontSize = '0.85rem';
+                        urlDiv.style.wordBreak = 'break-all';
+                        urlDiv.style.color = 'var(--text-primary)';
+                        
+                        let badge = '';
+                        if (result.url_analysis.suspicious_urls.includes(url)) {
+                            badge = '<span style="background: var(--critical-bg); color: var(--critical-text); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 0.5rem;">⚠️ SUSPICIOUS</span>';
+                        } else if (result.url_analysis.ip_based_urls.includes(url)) {
+                            badge = '<span style="background: var(--warning-bg); color: var(--warning-text); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 0.5rem;">🔍 IP-BASED</span>';
+                        } else if (result.url_analysis.shortened_urls.includes(url)) {
+                            badge = '<span style="background: var(--warning-bg); color: var(--warning-text); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 0.5rem;">📎 SHORTENED</span>';
+                        }
+                        
+                        urlDiv.innerHTML = badge + url;
+                        urlDetailsList.appendChild(urlDiv);
+                    });
+                }
+                
+                // Display email addresses
+                if (result.url_analysis.email_addresses.length > 0) {
+                    const emailHeader = document.createElement('h6');
+                    emailHeader.style.marginTop = '1rem';
+                    emailHeader.style.color = 'var(--text-primary)';
+                    emailHeader.innerHTML = '<i class="fas fa-envelope"></i> Email Addresses Found:';
+                    urlDetailsList.appendChild(emailHeader);
+                    
+                    result.url_analysis.email_addresses.forEach(email => {
+                        const emailDiv = document.createElement('div');
+                        emailDiv.style.background = 'var(--bg-primary)';
+                        emailDiv.style.border = '1px solid var(--border-color)';
+                        emailDiv.style.borderRadius = '8px';
+                        emailDiv.style.padding = '0.5rem 0.75rem';
+                        emailDiv.style.marginBottom = '0.5rem';
+                        emailDiv.style.fontFamily = 'monospace';
+                        emailDiv.style.fontSize = '0.85rem';
+                        emailDiv.style.color = 'var(--text-primary)';
+                        emailDiv.textContent = email;
+                        urlDetailsList.appendChild(emailDiv);
+                    });
+                }
+                
+                // Display phone numbers
+                if (result.url_analysis.phone_numbers.length > 0) {
+                    const phoneHeader = document.createElement('h6');
+                    phoneHeader.style.marginTop = '1rem';
+                    phoneHeader.style.color = 'var(--text-primary)';
+                    phoneHeader.innerHTML = '<i class="fas fa-phone"></i> Phone Numbers Found:';
+                    urlDetailsList.appendChild(phoneHeader);
+                    
+                    result.url_analysis.phone_numbers.forEach(phone => {
+                        const phoneDiv = document.createElement('div');
+                        phoneDiv.style.background = 'var(--bg-primary)';
+                        phoneDiv.style.border = '1px solid var(--border-color)';
+                        phoneDiv.style.borderRadius = '8px';
+                        phoneDiv.style.padding = '0.5rem 0.75rem';
+                        phoneDiv.style.marginBottom = '0.5rem';
+                        phoneDiv.style.fontFamily = 'monospace';
+                        phoneDiv.style.fontSize = '0.85rem';
+                        phoneDiv.style.color = 'var(--text-primary)';
+                        phoneDiv.textContent = phone;
+                        urlDetailsList.appendChild(phoneDiv);
+                    });
+                }
+            } else {
+                document.getElementById('urlAnalysisSection').style.display = 'none';
+            }
+
             resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function animateStatValue(elementId, value) {
@@ -1303,3 +1519,4 @@ ${stats.total_examples >= config.min_examples_for_retrain ?
     </script>
 </body>
 </html>
+

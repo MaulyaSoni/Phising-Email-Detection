@@ -564,8 +564,14 @@ def predict():
         suspicious_indicators.extend(analysis.get('brand_impersonation', []))
         suspicious_indicators.extend(analysis.get('financial_indicators', []))
         
+        # Legitimate indicators
+        legitimate_indicators = analysis.get('legitimate_indicators', [])
+        
         # Warning signs are recommendations
         warning_signs = analysis.get('recommendations', [])
+        
+        # URL Analysis data
+        url_analysis = analysis.get('url_analysis', {})
         
         result = {
             'success': True,
@@ -575,9 +581,21 @@ def predict():
             'safety_score': float(safety_score),
             'risk_level': analysis['risk_level'],
             'suspicious_indicators': suspicious_indicators,
+            'legitimate_indicators': legitimate_indicators,
             'warning_signs': warning_signs,
             'verdict': verdict,
             'verdict_description': verdict_description,
+            'url_analysis': {
+                'total_urls': url_analysis.get('total_urls', 0),
+                'all_urls': url_analysis.get('all_urls', []),
+                'suspicious_urls': url_analysis.get('suspicious_urls', []),
+                'ip_based_urls': url_analysis.get('ip_based_urls', []),
+                'shortened_urls': url_analysis.get('shortened_urls', []),
+                'email_addresses': url_analysis.get('email_addresses', []),
+                'phone_numbers': url_analysis.get('phone_numbers', []),
+                'file_attachments': url_analysis.get('file_attachments', []),
+                'risk_score': url_analysis.get('risk_score', 0)
+            },
             'timestamp': datetime.now().isoformat(),
             'automatic_learning': {
                 'auto_labeled': auto_labeled,

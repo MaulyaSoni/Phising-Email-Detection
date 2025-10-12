@@ -1,0 +1,26 @@
+[
+  {
+    "hash": "22006731d4ffdb908ca8ab5d4313ac02",
+    "text": "Subject: Q3 Budget Review Meeting - Thursday 2 PM\n\nHi Team,\n\nPlease join us for the quarterly budget review this Thursday at 2 PM in Conference Room A.\n\nAgenda:\n- Q3 performance review\n- Budget adjustments for Q4\n- Department updates\n\nPlease review the attached reports before the meeting.\n\nBest regards,\nSarah Johnson\nFinance Director",
+    "label": "legitimate",
+    "confidence": 0.8127267983626463,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "low_phishing_high_confidence",
+    "timestamp": "2025-10-11T23:56:02.459316",
+    "text_length": 335,
+    "model_version": 1.0
+  },
+  {
+    "hash": "5d75b49297e0e43cd615a784ac8dbf9e",
+    "text": "Subject: Urgent Wire Transfer Required - Confidential\n\nHi [Name],\n\nI'm in Singapore closing the acquisition deal. Need you to handle an urgent wire transfer.\n\nTRANSFER DETAILS:\nAmount: $85,000 USD\nRecipient: Singapore International Holdings\nBank: DBS Bank Singapore\nAccount: 003-901-567-8\nSwift: DBSSSGSG\n\nProcess immediately using corporate account ending in 4892.\n\nIMPORTANT: Keep this confidential. Don't copy finance team.\nTime critical - investors meeting competitors tomorrow.\n\nCEO\nSent from iPhone",
+    "label": "phishing",
+    "confidence": 0.680666082806214,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "medium_with_indicators",
+    "timestamp": "2025-10-11T23:56:16.741182",
+    "text_length": 504,
+    "model_version": 1.0
+  }
+]

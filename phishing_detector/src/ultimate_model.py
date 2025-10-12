@@ -319,6 +319,86 @@ class UltimatePhishingDetector:
         
         return prediction, probability
     
+    def extract_urls_and_links(self, text):
+        """Extract and analyze all URLs, links, and suspicious patterns from email"""
+        url_analysis = {
+            'all_urls': [],
+            'suspicious_urls': [],
+            'ip_based_urls': [],
+            'shortened_urls': [],
+            'embedded_links': [],
+            'email_addresses': [],
+            'phone_numbers': [],
+            'file_attachments': [],
+            'total_urls': 0,
+            'risk_score': 0
+        }
+        
+        text_lower = text.lower()
+        
+        # Extract all URLs
+        urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
+        url_analysis['all_urls'] = list(set(urls))  # Remove duplicates
+        url_analysis['total_urls'] = len(url_analysis['all_urls'])
+        
+        # Analyze each URL
+        for url in url_analysis['all_urls']:
+            url_lower = url.lower()
+            
+            # Check for IP-based URLs
+            if re.search(r'\d+\.\d+\.\d+\.\d+', url):
+                url_analysis['ip_based_urls'].append(url)
+                url_analysis['risk_score'] += 3
+            
+            # Check for URL shorteners
+            shorteners = ['bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd', 'buff.ly', 'adf.ly']
+            if any(shortener in url_lower for shortener in shorteners):
+                url_analysis['shortened_urls'].append(url)
+                url_analysis['risk_score'] += 2
+            
+            # Check for suspicious TLDs
+            suspicious_tlds = ['.tk', '.ml', '.ga', '.cf', '.click', '.download', '.review', '.top', '.work', '.date']
+            if any(tld in url_lower for tld in suspicious_tlds):
+                url_analysis['suspicious_urls'].append(url)
+                url_analysis['risk_score'] += 3
+            
+            # Check for typosquatting
+            brands = ['paypal', 'amazon', 'microsoft', 'apple', 'google', 'facebook', 'netflix', 'ebay']
+            for brand in brands:
+                if re.search(f'[a-z]+{brand}[a-z]+\.', url_lower) or re.search(f'{brand}[a-z0-9]+\.', url_lower):
+                    url_analysis['suspicious_urls'].append(url)
+                    url_analysis['risk_score'] += 4
+                    break
+            
+            # Check for suspicious keywords in URL
+            suspicious_keywords = ['verify', 'secure', 'account', 'update', 'confirm', 'login', 'signin', 'banking']
+            if any(keyword in url_lower for keyword in suspicious_keywords):
+                if url not in url_analysis['suspicious_urls']:
+                    url_analysis['suspicious_urls'].append(url)
+                url_analysis['risk_score'] += 1
+        
+        # Extract email addresses
+        emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
+        url_analysis['email_addresses'] = list(set(emails))
+        
+        # Extract phone numbers
+        phones = re.findall(r'\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b', text)
+        url_analysis['phone_numbers'] = [f"{p[0]}-{p[1]}-{p[2]}" for p in phones]
+        
+        # Check for attachment references
+        attachment_patterns = ['attached', 'attachment', 'see attached', 'find attached', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip']
+        for pattern in attachment_patterns:
+            if pattern in text_lower:
+                url_analysis['file_attachments'].append(f"Reference to: {pattern}")
+        
+        # Check for embedded/hidden links
+        if re.search(r'\[.*?\]\(.*?\)', text):  # Markdown links
+            url_analysis['embedded_links'].append("Markdown-style links detected")
+        if re.search(r'<a\s+href', text_lower):  # HTML links
+            url_analysis['embedded_links'].append("HTML links detected")
+        
+        return url_analysis
+    
     def analyze_email_comprehensive(self, text):
         """Comprehensive email analysis with detailed indicators"""
         analysis = {
@@ -329,6 +409,8 @@ class UltimatePhishingDetector:
             'suspicious_urls': [],
             'brand_impersonation': [],
             'financial_indicators': [],
+            'legitimate_indicators': [],
+            'url_analysis': {},
             'risk_level': 'LOW',
             'confidence': 0,
             'recommendations': []
@@ -372,14 +454,20 @@ class UltimatePhishingDetector:
         if re.search(r'click\s+(here|link)', text_lower):
             analysis['credential_harvesting'].append("Click request for link")
         
-        # Check URLs
-        urls = re.findall(r'http[s]?://[^\s]+', text_lower)
-        if urls:
-            for url in urls:
-                if any(shortener in url for shortener in ['bit.ly', 'tinyurl', 'goo.gl']):
-                    analysis['suspicious_urls'].append(f"Shortened URL: {url[:30]}...")
-                if re.search(r'\d+\.\d+\.\d+\.\d+', url):
-                    analysis['suspicious_urls'].append(f"IP-based URL: {url[:30]}...")
+        # Extract comprehensive URL analysis
+        url_analysis = self.extract_urls_and_links(text)
+        analysis['url_analysis'] = url_analysis
+        
+        # Add URL findings to suspicious indicators
+        if url_analysis['ip_based_urls']:
+            for url in url_analysis['ip_based_urls']:
+                analysis['suspicious_urls'].append(f"IP-based URL: {url[:50]}...")
+        if url_analysis['shortened_urls']:
+            for url in url_analysis['shortened_urls']:
+                analysis['suspicious_urls'].append(f"Shortened URL: {url[:50]}...")
+        if url_analysis['suspicious_urls']:
+            for url in url_analysis['suspicious_urls'][:3]:  # Limit to first 3
+                analysis['suspicious_urls'].append(f"Suspicious URL: {url[:50]}...")
         
         # Check brand impersonation
         major_brands = ['paypal', 'amazon', 'microsoft', 'apple', 'google', 'facebook', 'netflix', 'ebay']
@@ -396,8 +484,24 @@ class UltimatePhishingDetector:
         if re.search(r'lottery|prize|winner|reward', text_lower):
             analysis['financial_indicators'].append("Prize/reward offer")
         
-        # Calculate risk level
-        total_indicators = (
+        # Check for LEGITIMATE email indicators
+        if re.search(r'meeting|calendar|schedule|agenda', text_lower) and not any(word in text_lower for word in ['urgent', 'immediate', 'click']):
+            analysis['legitimate_indicators'].append("Business meeting/calendar reference")
+        if re.search(r'quarterly|annual|report|review|performance', text_lower):
+            analysis['legitimate_indicators'].append("Business reporting language")
+        if re.search(r'team|colleague|department|office', text_lower) and not re.search(r'verify|suspend|urgent', text_lower):
+            analysis['legitimate_indicators'].append("Internal team communication")
+        if re.search(r'thank you|thanks|appreciate|regards', text_lower) and len(text) > 100:
+            analysis['legitimate_indicators'].append("Professional courtesy language")
+        if re.search(r'attached|attachment|document|file', text_lower) and not re.search(r'click|download now|urgent', text_lower):
+            analysis['legitimate_indicators'].append("Normal attachment reference")
+        if re.search(r'order\s+#\d+|tracking\s+number|shipment|delivery', text_lower) and url_analysis['total_urls'] <= 2:
+            analysis['legitimate_indicators'].append("Order/shipping confirmation")
+        if re.search(r'invoice|receipt|payment\s+confirmation', text_lower) and not re.search(r'urgent|verify|suspended', text_lower):
+            analysis['legitimate_indicators'].append("Normal business transaction")
+        
+        # Calculate risk level with legitimate indicators consideration
+        total_suspicious = (
             len(analysis['bec_indicators']) + 
             len(analysis['tech_scam_indicators']) + 
             len(analysis['urgency_indicators']) + 
@@ -405,13 +509,18 @@ class UltimatePhishingDetector:
             len(analysis['suspicious_urls'])
         )
         
-        if total_indicators >= 8:
+        total_legitimate = len(analysis['legitimate_indicators'])
+        
+        # Adjust risk based on legitimate indicators
+        adjusted_risk = total_suspicious - (total_legitimate * 0.5)
+        
+        if adjusted_risk >= 8:
             analysis['risk_level'] = 'CRITICAL'
-        elif total_indicators >= 5:
+        elif adjusted_risk >= 5:
             analysis['risk_level'] = 'HIGH'
-        elif total_indicators >= 3:
+        elif adjusted_risk >= 3:
             analysis['risk_level'] = 'MEDIUM'
-        elif total_indicators >= 1:
+        elif adjusted_risk >= 1:
             analysis['risk_level'] = 'LOW'
         else:
             analysis['risk_level'] = 'VERY_LOW'
@@ -425,6 +534,9 @@ class UltimatePhishingDetector:
             analysis['recommendations'].append("Be cautious with this email")
             analysis['recommendations'].append("Verify sender through alternative means")
             analysis['recommendations'].append("Do not provide sensitive information")
+        elif total_legitimate >= 3 and total_suspicious <= 1:
+            analysis['recommendations'].append("Email appears legitimate")
+            analysis['recommendations'].append("Still verify sender if requesting sensitive actions")
         
         return analysis
     
