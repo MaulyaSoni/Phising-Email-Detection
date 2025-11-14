@@ -24,55 +24,128 @@ warnings.filterwarnings('ignore')
 class UltimatePhishingDetector:
     def __init__(self):
         self.model = None
-        self.vectorizer = None
-        self.scaler = None
+        self.vectorizer = TfidfVectorizer(
+            max_features=5000,
+            ngram_range=(1, 2),
+            stop_words='english',
+            max_df=0.95,
+            min_df=2
+        )
+        self.scaler = StandardScaler()
         self.is_trained = False
         self.feature_importance = {}
+        self.class_weights = {0: 1, 1: 2}  # Higher weight for phishing class (1)
+        self.model_version = '1.1.0'  # Updated version
         
     def extract_ultimate_features(self, text):
-        """Extract comprehensive features designed to catch sophisticated phishing attempts"""
+        """Extract comprehensive features designed to catch sophisticated phishing attempts and identify legitimate emails"""
         if pd.isna(text) or not text:
-            return np.zeros(100)  # Increased to 100 features for better detection
+            return np.zeros(110)  # Increased to 110 features for better detection
         
         text_lower = str(text).lower()
         original_text = str(text)
         features = []
         
-        # === 1. ADVANCED URL AND DOMAIN ANALYSIS (15 features) ===
+        # === 1. ADVANCED URL AND DOMAIN ANALYSIS (20 features) ===
         urls = re.findall(r'http[s]?://[^\s]+', text_lower)
-        domains = re.findall(r'(?:http[s]?://)?([^/\s]+)', text_lower)
+        domains = [re.sub(r'^www\.', '', domain.split('/')[0]) for domain in re.findall(r'(?:http[s]?://)?([^/\s]+)', text_lower)]
+        
+        # Common legitimate domains and services
+        legitimate_domains = ['gmail.com', 'outlook.com', 'yahoo.com', 'protonmail.com', 'icloud.com', 
+                            'mail.google.com', 'outlook.office.com', 'amazon.com', 'paypal.com', 'microsoft.com']
+        
+        # Extract sender and recipient information if available
+        sender_domain = ''
+        recipient_domain = ''
+        if 'from:' in text_lower and 'to:' in text_lower:
+            try:
+                sender = re.search(r'from:\s*[\w\.-]+@([\w\.-]+)', text_lower)
+                recipient = re.search(r'to:\s*[\w\.-]+@([\w\.-]+)', text_lower)
+                if sender:
+                    sender_domain = sender.group(1)
+                if recipient:
+                    recipient_domain = recipient.group(1)
+            except:
+                pass
         
         features.extend([
             len(urls),  # URL count
             len(set(urls)),  # Unique URL count
-            1 if any(domain in url for url in urls for domain in ['bit.ly', 'tinyurl', 'goo.gl', 't.co', 'ow.ly']) else 0,  # URL shorteners
-            1 if any(tld in text_lower for tld in ['.tk', '.ml', '.ga', '.cf', '.click', '.download', '.review']) else 0,  # Suspicious TLDs
+            # URL shorteners (suspicious)
+            1 if any(domain in url for url in urls for domain in ['bit.ly', 'tinyurl', 'goo.gl', 't.co', 'ow.ly', 'rebrand.ly']) else 0,
+            # Suspicious TLDs
+            1 if any(tld in text_lower for tld in ['.tk', '.ml', '.ga', '.cf', '.click', '.download', '.review', '.xyz', '.gq']) else 0,
+            # Legitimate TLDs
+            1 if any(tld in text_lower for tld in ['.com', '.org', '.net', '.edu', '.gov']) else 0,
             len(re.findall(r'\d+\.\d+\.\d+\.\d+', text_lower)),  # IP addresses
             1 if re.search(r'https?://[^/]*[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', text_lower) else 0,  # IP-based URLs
             len(re.findall(r'@[^/]*\.', text_lower)),  # @ symbol in URLs (phishing indicator)
             len(re.findall(r'-', ' '.join(domains))) if domains else 0,  # Hyphens in domains
             max([len(d) for d in domains]) if domains else 0,  # Max domain length
             1 if any(re.search(r'[0-9]', d) for d in domains) else 0,  # Numbers in domain
-            1 if re.search(r'https?://[^/]*(?:verify|secure|account|update|confirm)', text_lower) else 0,  # Suspicious URL paths
-            1 if len(urls) > 0 and not any('https' in url for url in urls) else 0,  # No HTTPS
-            len(re.findall(r'\.com\.[a-z]{2}', text_lower)),  # Fake .com domains
-            1 if re.search(r'[a-z]+(paypal|amazon|microsoft|apple|google|facebook)[a-z]+\.', text_lower) else 0,  # Typosquatting
-            len(re.findall(r'%[0-9a-f]{2}', text_lower))  # URL encoding
+            # Legitimate domain patterns
+            1 if any(legit_domain in domain for domain in domains for legit_domain in legitimate_domains) else 0,
+            # Sender-recipient relationship
+            1 if sender_domain and recipient_domain and sender_domain == recipient_domain else 0,  # Internal email
+            # Domain age (check for newly registered domains)
+            1 if any(domain.endswith(('.xyz', '.top', '.gq', '.cf', '.ga', '.ml', '.tk')) for domain in domains) else 0,
+            # HTTPS usage
+            1 if len(urls) > 0 and all('https' in url.lower() for url in urls) else 0,  # All URLs use HTTPS
+            # Legitimate URL paths
+            1 if re.search(r'https?://[^/]*(/support/|/help/|/contact/|/about/)', text_lower) else 0,
+            # Suspicious URL paths
+            1 if re.search(r'https?://[^/]*(verify|secure|account|update|confirm|login|signin|billing)', text_lower) else 0,
+            # URL redirects
+            len(re.findall(r'https?://[^/]+/redirect/|/go/|/out/|/link/', text_lower)),
+            # Brand in domain (legitimate if matches sender domain)
+            1 if any(brand in text_lower and any(brand in domain for domain in domains) 
+                    for brand in ['paypal', 'amazon', 'microsoft', 'apple', 'google']) else 0,
+            # URL encoding (suspicious)
+            len(re.findall(r'%[0-9a-f]{2}', text_lower))
         ])
         
-        # === 2. SOPHISTICATED BRAND IMPERSONATION (10 features) ===
+        # === 2. SOPHISTICATED BRAND IMPERSONATION (15 features) ===
         major_brands = ['paypal', 'amazon', 'microsoft', 'apple', 'google', 'facebook', 'netflix', 'ebay', 
                        'bank of america', 'wells fargo', 'chase', 'citibank', 'american express', 'visa', 'mastercard']
         tech_brands = ['windows', 'office 365', 'outlook', 'gmail', 'icloud', 'dropbox', 'adobe']
+        financial_institutions = ['bank', 'credit union', 'savings', 'loan', 'mortgage', 'investment']
+        
+        # Check for brand impersonation patterns
+        brand_mentions = sum(1 for brand in major_brands if brand in text_lower)
+        tech_mentions = sum(1 for brand in tech_brands if brand in text_lower)
+        financial_mentions = sum(1 for term in financial_institutions if term in text_lower)
+        
+        # Check for legitimate brand communication patterns
+        legitimate_brand_patterns = [
+            'unsubscribe', 'privacy policy', 'terms of service', 'view in browser',
+            'sent from my iphone', 'sent from my android', 'do not reply', 'noreply',
+            'all rights reserved', 'copyright', 'trademark', 'confidentiality notice'
+        ]
         
         features.extend([
-            sum(1 for brand in major_brands if brand in text_lower),  # Major brand mentions
-            sum(1 for brand in tech_brands if brand in text_lower),  # Tech brand mentions
-            1 if any(brand in text_lower for brand in major_brands) and 'verify' in text_lower else 0,  # Brand + verify
-            1 if any(brand in text_lower for brand in major_brands) and 'suspend' in text_lower else 0,  # Brand + suspend
-            1 if any(brand in text_lower for brand in major_brands) and 'expire' in text_lower else 0,  # Brand + expire
-            1 if re.search(r'(customer|technical|security)\s+support', text_lower) else 0,  # Support mentions
-            1 if re.search(r'(license|subscription|membership)\s+(expire|renew|cancel)', text_lower) else 0,  # License threats
+            brand_mentions,  # Major brand mentions
+            tech_mentions,  # Tech brand mentions
+            financial_mentions,  # Financial institution mentions
+            
+            # Suspicious brand patterns
+            1 if brand_mentions > 0 and 'verify' in text_lower else 0,  # Brand + verify
+            1 if brand_mentions > 0 and 'suspend' in text_lower else 0,  # Brand + suspend
+            1 if brand_mentions > 0 and 'expire' in text_lower else 0,  # Brand + expire
+            1 if brand_mentions > 0 and 'login' in text_lower else 0,  # Brand + login
+            1 if brand_mentions > 0 and 'password' in text_lower else 0,  # Brand + password
+            
+            # Legitimate patterns
+            sum(1 for pattern in legitimate_brand_patterns if pattern in text_lower),
+            
+            # Brand consistency with sender domain
+            1 if sender_domain and any(brand in sender_domain for brand in major_brands) else 0,
+            
+            # Legitimate support patterns
+            1 if re.search(r'(customer|technical|security)\s+support', text_lower) and 
+                any(term in text_lower for term in ['contact us', 'help center', 'support center']) else 0,
+                
+            # Suspicious support patterns
+            1 if re.search(r'(license|subscription|membership)\s+(expire|renew|cancel)', text_lower) else 0,
             1 if 'microsoft' in text_lower and 'license' in text_lower else 0,  # Microsoft license scam
             1 if 'irs' in text_lower or 'tax' in text_lower and 'refund' in text_lower else 0,  # Tax scams
             1 if 'invoice' in text_lower and 'attached' in text_lower else 0  # Invoice scams
@@ -293,31 +366,87 @@ class UltimatePhishingDetector:
         
         return text.strip()
     
-    def predict(self, text):
-        """Predict if an email is phishing with confidence score"""
-        if not self.is_trained:
-            raise ValueError("Model is not trained yet!")
+    def predict(self, text, return_analysis=False):
+        """
+        Predict if an email is phishing or legitimate with confidence scores
         
-        # Extract features
-        features = self.extract_ultimate_features(text).reshape(1, -1)
-        
-        # Preprocess text
-        processed_text = self.preprocess_text_advanced(text)
-        
-        # TF-IDF features
-        tfidf_features = self.vectorizer.transform([processed_text]).toarray()
-        
-        # Combine features
-        X_combined = np.hstack([features, tfidf_features])
-        
-        # Scale features
-        X_scaled = self.scaler.transform(X_combined)
-        
-        # Predict
-        prediction = self.model.predict(X_scaled)[0]
-        probability = self.model.predict_proba(X_scaled)[0]
-        
-        return prediction, probability
+        Args:
+            text (str): The email content to analyze
+            return_analysis (bool): Whether to return detailed analysis
+            
+        Returns:
+            tuple: (prediction, probabilities) or (prediction, probabilities, analysis)
+                   where prediction is 0 (legitimate) or 1 (phishing),
+                   probabilities are [P(legitimate), P(phishing)],
+                   and analysis is a dict with detailed feature analysis
+        """
+        try:
+            if not self.is_trained or self.model is None:
+                raise ValueError("Model not trained or loaded")
+                
+            # Extract features and get analysis
+            features = self.extract_ultimate_features(text)
+            analysis = self.analyze_email_comprehensive(text)
+            
+            # Preprocess text for TF-IDF
+            processed_text = self.preprocess_text_advanced(text)
+            
+            # Get TF-IDF features if vectorizer is available
+            if hasattr(self, 'vectorizer') and self.vectorizer is not None:
+                try:
+                    tfidf_features = self.vectorizer.transform([processed_text]).toarray()
+                    features = np.concatenate([features, tfidf_features[0]])
+                except Exception as e:
+                    print(f"Warning: TF-IDF vectorization failed: {e}")
+            
+            # Scale features if scaler is available
+            if hasattr(self, 'scaler') and self.scaler is not None:
+                try:
+                    features = self.scaler.transform([features])[0]
+                except Exception as e:
+                    print(f"Warning: Feature scaling failed: {e}")
+            
+            # Make prediction with calibrated probabilities
+            prediction = self.model.predict([features])[0]
+            probabilities = self.model.predict_proba([features])[0]
+            
+            # Apply temperature scaling to make probabilities more conservative
+            temperature = 0.8  # Lower temperature makes probabilities more conservative
+            probabilities = np.exp(np.log(np.maximum(probabilities, 1e-15)) / temperature)
+            probabilities = probabilities / np.sum(probabilities)
+            
+            # Add confidence level based on probability difference
+            confidence = abs(probabilities[1] - 0.5) * 2  # 0 to 1 scale
+            
+            # Add to analysis
+            analysis.update({
+                'confidence': float(confidence),
+                'prediction': 'phishing' if prediction == 1 else 'legitimate',
+                'phishing_probability': float(probabilities[1]),
+                'features_used': len([f for f in features if f != 0]),
+                'model_version': self.model_version
+            })
+            
+            if return_analysis:
+                return prediction, probabilities, analysis
+            return prediction, probabilities
+            
+        except Exception as e:
+            import traceback
+            print(f"Error during prediction: {e}")
+            print(f"Traceback: {traceback.format_exc()}")
+            
+            # Return neutral probability on error with low confidence
+            neutral_prob = [0.5, 0.5]
+            if return_analysis:
+                return 0, neutral_prob, {
+                    'error': str(e),
+                    'confidence': 0.0,
+                    'prediction': 'unknown',
+                    'phishing_probability': 0.5,
+                    'model_version': self.model_version
+                }
+            return 0, neutral_prob
     
     def extract_urls_and_links(self, text):
         """Extract and analyze all URLs, links, and suspicious patterns from email"""
@@ -540,6 +669,228 @@ class UltimatePhishingDetector:
         
         return analysis
     
+    def train(self, X, y):
+        """
+        Train the enhanced phishing detection model with improved handling of legitimate emails
+        
+        Args:
+            X: Feature matrix
+            y: Target labels (0 for legitimate, 1 for phishing)
+            
+        Returns:
+            dict: Training metrics and evaluation results
+        """
+        try:
+            # Calculate class weights to handle imbalanced data
+            class_counts = np.bincount(y)
+            total_samples = len(y)
+            class_weights = {
+                0: total_samples / (2 * class_counts[0]),  # Legitimate
+                1: total_samples / (2 * class_counts[1])   # Phishing
+            }
+            
+            # Split the data with stratification
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=42, stratify=y
+            )
+            
+            # Create base models with improved parameters
+            rf = RandomForestClassifier(
+                n_estimators=300,
+                max_depth=20,
+                min_samples_split=3,
+                min_samples_leaf=1,
+                class_weight=class_weights,
+                random_state=42,
+                n_jobs=-1,
+                max_features='sqrt',
+                max_samples=0.8,
+                bootstrap=True,
+                oob_score=True
+            )
+            
+            gb = GradientBoostingClassifier(
+                n_estimators=200,
+                learning_rate=0.05,
+                max_depth=7,
+                min_samples_split=5,
+                min_samples_leaf=2,
+                random_state=42,
+                subsample=0.8,
+                max_features='sqrt',
+                validation_fraction=0.1,
+                n_iter_no_change=10,
+                tol=1e-4
+            )
+            
+            lr = LogisticRegression(
+                C=0.8,
+                class_weight=class_weights,
+                max_iter=2000,
+                random_state=42,
+                solver='saga',
+                penalty='elasticnet',
+                l1_ratio=0.5,
+                n_jobs=-1
+            )
+            
+            svm = SVC(
+                C=1.2,
+                kernel='rbf',
+                class_weight=class_weights,
+                probability=True,
+                random_state=42,
+                gamma='scale',
+                cache_size=1000,
+                max_iter=10000
+            )
+            
+            # Create voting classifier with optimized weights
+            self.model = VotingClassifier(
+                estimators=[
+                    ('rf', rf),
+                    ('gb', gb),
+                    ('lr', lr),
+                    ('svm', svm)
+                ],
+                voting='soft',
+                weights=[0.3, 0.3, 0.2, 0.2],  # Adjusted weights based on model performance
+                n_jobs=-1
+            )
+            
+            # Train the model with early stopping on a validation set
+            X_train_fit, X_val, y_train_fit, y_val = train_test_split(
+                X_train, y_train, test_size=0.15, random_state=42, stratify=y_train
+            )
+            
+            # Fit the model
+            self.model.fit(X_train_fit, y_train_fit)
+            
+            # Evaluate on validation set
+            val_pred = self.model.predict(X_val)
+            val_f1 = f1_score(y_val, val_pred, zero_division=0)
+            
+            # Final training on full training set if validation score is good
+            if val_f1 > 0.7:  # Only retrain if validation score is reasonable
+                self.model.fit(X_train, y_train)
+            
+            # Final evaluation on test set
+            y_pred = self.model.predict(X_test)
+            y_pred_proba = self.model.predict_proba(X_test)
+            
+            # Calculate metrics
+            metrics = {
+                'accuracy': accuracy_score(y_test, y_pred),
+                'precision': precision_score(y_test, y_pred, zero_division=0, average='weighted'),
+                'recall': recall_score(y_test, y_pred, zero_division=0, average='weighted'),
+                'f1': f1_score(y_test, y_pred, zero_division=0, average='weighted'),
+                'roc_auc': roc_auc_score(y_test, y_pred_proba[:, 1]),
+                'log_loss': log_loss(y_test, y_pred_proba)
+            }
+            
+            # Cross-validation with more folds
+            print("\nPerforming cross-validation...")
+            cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+            cv_scores = cross_validate(
+                self.model, X, y, cv=cv, scoring={
+                    'f1': 'f1_weighted',
+                    'precision': 'precision_weighted',
+                    'recall': 'recall_weighted',
+                    'roc_auc': 'roc_auc_ovr_weighted',
+                    'accuracy': 'accuracy'
+                },
+                n_jobs=-1,
+                return_train_score=True
+            )
+            
+            # Print detailed CV results
+            for metric in ['test_accuracy', 'test_precision', 'test_recall', 'test_f1', 'test_roc_auc']:
+                print(f"{metric}: {np.mean(cv_scores[metric]):.4f} (±{np.std(cv_scores[metric]):.4f})")
+            
+            # Feature importance for Random Forest
+            if hasattr(self.model, 'named_estimators_') and 'rf' in self.model.named_estimators_:
+                importances = self.model.named_estimators_['rf'].feature_importances_
+                self.feature_importance = dict(zip(range(len(importances)), importances))
+            
+            self.is_trained = True
+            
+            # Return comprehensive metrics
+            result = {
+                **metrics,
+                'cv_scores': {k: v.tolist() for k, v in cv_scores.items()},
+                'cv_mean': {k.replace('test_', ''): float(np.mean(v)) 
+                           for k, v in cv_scores.items() if k.startswith('test_')},
+                'cv_std': {k.replace('test_', ''): float(np.std(v))
+                          for k, v in cv_scores.items() if k.startswith('test_')},
+                'class_distribution': {
+                    'legitimate': int(class_counts[0]),
+                    'phishing': int(class_counts[1]),
+                    'total': int(total_samples)
+                },
+                'model_version': self.model_version,
+                'training_date': datetime.now().isoformat()
+            }
+            
+            print(f"\nModel trained successfully! Version: {self.model_version}")
+            print(f"Test F1: {result['f1']:.4f}, ROC-AUC: {result['roc_auc']:.4f}")
+            
+            return result
+            
+        except Exception as e:
+            import traceback
+            print(f"Error during model training: {e}")
+            print(f"Traceback: {traceback.format_exc()}")
+            self.is_trained = False
+            return None
+    
+    def fit(self, texts, labels):
+        """
+        Fit method for compatibility with retraining logic
+        Takes raw text data and labels, processes them, and trains the model
+        
+        Args:
+            texts: List or array of email texts
+            labels: List or array of labels (0 for legitimate, 1 for phishing)
+        
+        Returns:
+            self: Returns self for method chaining
+        """
+        try:
+            print(f"⚙ Fitting model with {len(texts)} samples...")
+            
+            # Extract features for all samples
+            print("⚙ Extracting features...")
+            X_features = np.array([self.extract_ultimate_features(text) for text in texts])
+            
+            # Preprocess text for TF-IDF
+            print("⚙ Preprocessing text...")
+            X_processed = [self.preprocess_text_advanced(text) for text in texts]
+            
+            # Fit and transform TF-IDF
+            print("⚙ Applying TF-IDF vectorization...")
+            X_tfidf = self.vectorizer.fit_transform(X_processed).toarray()
+            
+            # Combine features
+            X_combined = np.hstack([X_features, X_tfidf])
+            
+            # Scale features
+            print("⚙ Scaling features...")
+            X_scaled = self.scaler.fit_transform(X_combined)
+            
+            # Train the model
+            print("⚙ Training model...")
+            self.train(X_scaled, np.array(labels))
+            
+            print("✓ Model fitting complete!")
+            return self
+            
+        except Exception as e:
+            import traceback
+            print(f"Error during model fitting: {e}")
+            print(f"Traceback: {traceback.format_exc()}")
+            self.is_trained = False
+            raise
+    
     def save_model(self, path='models/ultimate_phishing_model.pkl'):
         """Save the trained model"""
         if not self.is_trained:
@@ -556,7 +907,7 @@ class UltimatePhishingDetector:
         }
         
         joblib.dump(model_data, path)
-        print(f"✓ Model saved to {path}")
+        print(f" Model saved to {path}")
     
     def load_model(self, path='models/ultimate_phishing_model.pkl'):
         """Load a trained model"""

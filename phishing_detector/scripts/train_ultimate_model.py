@@ -23,25 +23,34 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def load_and_prepare_data():
-    """Load existing data and add the 5 sophisticated phishing samples"""
+    """Load data from Merged_Dataset.csv and prepare for training"""
     
-    # Try to load existing data
+    # Paths to check for the dataset
     data_paths = [
-        "../../Phishing-Email-Detection-Using-Machine-Learning-main/data/train_split.csv",
-        "../data/train_split.csv",
-        "data/train_split.csv"
+        os.path.join("..", "data", "Merged_Dataset.csv"),
+        os.path.join("..", "..", "data", "Merged_Dataset.csv"),
+        os.path.join("data", "Merged_Dataset.csv"),
+        os.path.join("..", "..", "Phishing-Email-Detection-Using-Machine-Learning-main", "data", "Merged_Dataset.csv")
     ]
     
     df = None
     for path in data_paths:
         if os.path.exists(path):
-            print(f"✓ Loading data from: {path}")
-            df = pd.read_csv(path)
-            break
+            print(f"✓ Loading data from: {os.path.abspath(path)}")
+            try:
+                # Try with UTF-8 first
+                df = pd.read_csv(path, encoding='utf-8')
+                break
+            except UnicodeDecodeError:
+                try:
+                    # Fall back to latin-1 if UTF-8 fails
+                    df = pd.read_csv(path, encoding='latin-1')
+                    break
+                except Exception as e:
+                    print(f"Error loading {path} with latin-1: {str(e)}")
     
-    if df is None:
-        print("Creating synthetic dataset...")
-        # Create a basic dataset if no data exists
+    if df is None or df.empty:
+        print("⚠ Could not find or load Merged_Dataset.csv. Creating synthetic dataset...")
         phishing_samples = [
             "URGENT! Your account has been compromised. Click here to secure it now!",
             "Congratulations! You've won $1,000,000. Claim your prize immediately!",
@@ -61,6 +70,52 @@ def load_and_prepare_data():
         texts = phishing_samples + legitimate_samples
         labels = [1] * len(phishing_samples) + [0] * len(legitimate_samples)
         df = pd.DataFrame({'text': texts, 'label': labels})
+    else:
+        print(f"✓ Loaded {len(df)} total emails")
+        
+        # Check and clean the data
+        print("\nData Summary:")
+        print("-" * 50)
+        print(f"Total emails: {len(df)}")
+        print(f"Columns: {df.columns.tolist()}")
+        
+        # Check for missing values
+        print("\nMissing values per column:")
+        print(df.isnull().sum())
+        
+        # Check label distribution if label column exists
+        if 'label' in df.columns:
+            print("\nLabel distribution:")
+            print(df['label'].value_counts())
+        
+        # Preprocess the data
+        print("\nPreprocessing data...")
+        
+        # Combine subject and body for text analysis if they exist
+        if 'subject' in df.columns and 'body' in df.columns:
+            df['text'] = df['subject'].fillna('') + ' ' + df['body'].fillna('')
+        elif 'body' in df.columns:
+            df['text'] = df['body']
+        elif 'text' not in df.columns:
+            raise ValueError("Could not find 'text', 'body' or 'subject' columns in the dataset")
+        
+        # Clean up text
+        df['text'] = df['text'].astype(str).str.replace('\r\n', ' ').str.replace('\n', ' ').str.strip()
+        
+        # Handle labels - ensure they are binary (0/1)
+        if 'label' in df.columns:
+            # Convert labels to binary (assuming 0=legitimate, 1=phishing)
+            if df['label'].dtype == 'object':
+                df['label'] = df['label'].str.lower().map({'phishing': 1, 'legitimate': 0, 'ham': 0, 'spam': 1, '1': 1, '0': 0})
+            # Fill any remaining NaN with 1 (treat as phishing for safety)
+            df['label'] = df['label'].fillna(1).astype(int)
+        else:
+            print("⚠ No 'label' column found. Treating all as phishing for safety.")
+            df['label'] = 1
+        
+        print(f"✓ Preprocessing complete. Final dataset size: {len(df)}")
+        print(f"  - Phishing emails: {df['label'].sum()}")
+        print(f"  - Legitimate emails: {len(df) - df['label'].sum()}")
     
     # Add the 5 sophisticated phishing samples that were misclassified
     sophisticated_phishing = [
@@ -274,14 +329,10 @@ Internal Revenue Service - Examination Division"""
     # Shuffle the data
     df = df.sample(frac=1, random_state=42).reset_index(drop=True)
     
-    # Limit dataset size for efficiency if needed
-    if len(df) > 10000:
-        print(f"Large dataset ({len(df)} samples). Sampling 10,000 for faster training...")
-        df = df.sample(n=10000, random_state=42).reset_index(drop=True)
-    
-    print(f"✓ Total samples: {len(df)}")
-    print(f"✓ Phishing emails: {sum(df['label'] == 1)}")
-    print(f"✓ Legitimate emails: {sum(df['label'] == 0)}")
+    # Use the full dataset for training
+    print(f"\nUsing full dataset for training: {len(df)} samples")
+    print(f"✓ Phishing emails: {len(df[df['label'] == 1])}")
+    print(f"✓ Legitimate emails: {len(df[df['label'] == 0])}")
     
     return df
 
@@ -331,12 +382,20 @@ def train_model():
     # Get labels
     y = df['label'].values
     
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
+    # Split into training, validation, and test sets
+    print("\nSplitting data into training, validation, and test sets...")
+    # First split: 80% train+val, 20% test
+    X_train_val, X_test, y_train_val, y_test = train_test_split(
         X_scaled, y, test_size=0.2, random_state=42, stratify=y
     )
     
+    # Second split: 75% train, 25% val (which is 20% of total data)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train_val, y_train_val, test_size=0.25, random_state=42, stratify=y_train_val
+    )
+    
     print(f"\n✓ Training set: {len(X_train)} samples")
+    print(f"✓ Validation set: {len(X_val)} samples")
     print(f"✓ Test set: {len(X_test)} samples")
     
     # Create ensemble model
@@ -376,29 +435,54 @@ def train_model():
     detector.model.fit(X_train, y_train)
     detector.is_trained = True
     
+    # Evaluate on validation set first
+    print("\n📊 Model Performance on Validation Set:")
+    print("-" * 40)
+    
+    y_val_pred = detector.model.predict(X_val)
+    y_val_pred_proba = detector.model.predict_proba(X_val)
+    
+    # Calculate metrics for validation set
+    val_accuracy = accuracy_score(y_val, y_val_pred)
+    val_precision = precision_score(y_val, y_val_pred)
+    val_recall = recall_score(y_val, y_val_pred)
+    val_f1 = f1_score(y_val, y_val_pred)
+    
+    print(f"Validation Accuracy: {val_accuracy:.4f}")
+    print(f"Validation Precision: {val_precision:.4f}")
+    print(f"Validation Recall:    {val_recall:.4f}")
+    print(f"Validation F1-Score:  {val_f1:.4f}\n")
+    
     # Evaluate on test set
     print("\n📊 Model Performance on Test Set:")
     print("-" * 40)
     
-    y_pred = detector.model.predict(X_test)
-    y_pred_proba = detector.model.predict_proba(X_test)
+    y_test_pred = detector.model.predict(X_test)
+    y_test_pred_proba = detector.model.predict_proba(X_test)
     
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+    # Calculate metrics for test set
+    test_accuracy = accuracy_score(y_test, y_test_pred)
+    test_precision = precision_score(y_test, y_test_pred)
+    test_recall = recall_score(y_test, y_test_pred)
+    test_f1 = f1_score(y_test, y_test_pred)
     
-    print(f"Accuracy:  {accuracy_score(y_test, y_pred):.4f}")
-    print(f"Precision: {precision_score(y_test, y_pred):.4f}")
-    print(f"Recall:    {recall_score(y_test, y_pred):.4f}")
-    print(f"F1-Score:  {f1_score(y_test, y_pred):.4f}")
+    print(f"Test Accuracy: {test_accuracy:.4f}")
+    print(f"Test Precision: {test_precision:.4f}")
+    print(f"Test Recall:    {test_recall:.4f}")
+    print(f"Test F1-Score:  {test_f1:.4f}\n")
     
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, target_names=['Legitimate', 'Phishing']))
+    # Classification report for test set
+    print("Test Set Classification Report:")
+    print(classification_report(y_test, y_test_pred, target_names=['Legitimate', 'Phishing']))
     
-    print("\nConfusion Matrix:")
-    cm = confusion_matrix(y_test, y_pred)
-    print(f"True Negatives:  {cm[0,0]}")
-    print(f"False Positives: {cm[0,1]}")
-    print(f"False Negatives: {cm[1,0]}")
-    print(f"True Positives:  {cm[1,1]}")
+    # Confusion matrix for test set
+    cm = confusion_matrix(y_test, y_test_pred)
+    tn, fp, fn, tp = cm.ravel()
+    print(f"\nTest Set Confusion Matrix:")
+    print(f"True Negatives:  {tn}")
+    print(f"False Positives: {fp}")
+    print(f"False Negatives: {fn}")
+    print(f"True Positives:  {tp}")
     
     # Test on the 5 sophisticated samples
     print("\n" + "=" * 60)
