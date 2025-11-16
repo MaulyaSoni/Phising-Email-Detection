@@ -129,8 +129,8 @@ def save_training_data(data):
         print(f"Error saving training data: {e}")
         return False
 
-def store_training_example(email_text, label, confidence=None, user_corrected=False):
-    """Store labeled examples for future training with enhanced metadata"""
+def store_training_example_basic(email_text, label, confidence=None, user_corrected=False):
+    """Store labeled examples for future training with enhanced metadata (deprecated - use enhanced version)"""
     if not email_text:
         return False
     
