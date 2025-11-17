@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Email Detector</title>
+    <link rel="stylesheet" href="popup-styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Phishing Detector</h1>
+            <p class="subtitle">AI-Powered Email Security</p>
+        </div>
+
+        <div class="content">
+            <div id="status" class="status-box">
+                <p>Ready to scan emails</p>
+            </div>
+
+            <div id="result" class="result-box" style="display: none;">
+                <div class="result-header">
+                    <span id="result-icon" class="result-icon"></span>
+                    <span id="result-title" class="result-title"></span>
+                </div>
+                <div class="result-details">
+                    <p><strong>Confidence:</strong> <span id="confidence"></span>%</p>
+                    <p><strong>Risk Level:</strong> <span id="risk-level"></span></p>
+                    <div id="details-box" class="details-box"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="scan-btn" class="btn btn-primary">
+                    <span class="btn-icon">🔍</span> Scan Current Email
+                </button>
+                <button id="settings-btn" class="btn btn-secondary">
+                    <span class="btn-icon">⚙️</span> Settings
+                </button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Emails Scanned</span>
+                    <span id="scan-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Threats Detected</span>
+                    <span id="threat-count" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>💡 Tips to Stay Safe:</h3>
+                <ul>
+                    <li>Never click links from unknown senders</li>
+                    <li>Verify sender email addresses carefully</li>
+                    <li>Check for spelling and grammar errors</li>
+                    <li>Be suspicious of urgent requests</li>
+                    <li>Hover over links to see the actual URL</li>
+                </ul>
+            </div>
+
+            <div class="footer">
+                <p>Version 1.0.0 | <a href="#" id="help-link">Help</a> | <a href="#" id="feedback-link">Feedback</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

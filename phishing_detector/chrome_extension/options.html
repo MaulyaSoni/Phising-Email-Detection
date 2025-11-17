@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detector Settings</title>
+    <link rel="stylesheet" href="options-styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Phishing Detector Settings</h1>
+        </div>
+
+        <div class="content">
+            <div class="settings-section">
+                <h2>Detection Settings</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="enable-detection" checked>
+                        <span>Enable Real-time Detection</span>
+                    </label>
+                    <p class="setting-description">Automatically scan emails as you read them</p>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="show-indicators" checked>
+                        <span>Show Visual Indicators</span>
+                    </label>
+                    <p class="setting-description">Display phishing risk badges on emails</p>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="block-suspicious" checked>
+                        <span>Block Suspicious Links</span>
+                    </label>
+                    <p class="setting-description">Warn before opening potentially dangerous links</p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Sensitivity Level</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label">Detection Sensitivity</label>
+                    <div class="slider-container">
+                        <input type="range" id="sensitivity" min="1" max="5" value="3" class="slider">
+                        <div class="slider-labels">
+                            <span>Low</span>
+                            <span>Medium</span>
+                            <span>High</span>
+                        </div>
+                    </div>
+                    <p class="setting-description">Higher sensitivity may flag more false positives</p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Email Providers</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="enable-gmail" checked>
+                        <span>Gmail</span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="enable-outlook" checked>
+                        <span>Outlook</span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="enable-yahoo" checked>
+                        <span>Yahoo Mail</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>Privacy & Data</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="send-analytics" checked>
+                        <span>Help Improve Detection</span>
+                    </label>
+                    <p class="setting-description">Send anonymous usage data to improve our detection algorithms</p>
+                </div>
+
+                <div class="setting-item">
+                    <button id="clear-data" class="btn btn-danger">Clear All Data</button>
+                    <p class="setting-description">Reset statistics and cached data</p>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h2>About</h2>
+                <p class="about-text">
+                    <strong>Phishing Email Detector v1.0.0</strong><br>
+                    Advanced AI-powered phishing detection for your email security.<br><br>
+                    <strong>Features:</strong>
+                    <ul>
+                        <li>Real-time email analysis</li>
+                        <li>Suspicious link detection</li>
+                        <li>Sender verification</li>
+                        <li>Grammar and spelling analysis</li>
+                        <li>URL reputation checking</li>
+                    </ul>
+                </p>
+            </div>
+
+            <div class="button-group">
+                <button id="save-btn" class="btn btn-primary">Save Settings</button>
+                <button id="reset-btn" class="btn btn-secondary">Reset to Default</button>
+            </div>
+
+            <div id="status-message" class="status-message"></div>
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>
