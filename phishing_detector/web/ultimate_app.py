@@ -848,7 +848,7 @@ def predict():
         # Get comprehensive analysis
         analysis = detector.analyze_email_comprehensive(email_text)
         
-        # ===== CRITICAL FIX: BOOST PHISHING PROBABILITY BASED ON INDICATORS =====
+        # ===== INTELLIGENT INDICATOR-BASED CLASSIFICATION =====
         # Count all suspicious indicators
         bec_count = len(analysis.get('bec_indicators', []))
         tech_scam_count = len(analysis.get('tech_scam_indicators', []))
@@ -857,41 +857,53 @@ def predict():
         urgency_count = len(analysis.get('urgency_indicators', []))
         financial_count = len(analysis.get('financial_indicators', []))
         brand_count = len(analysis.get('brand_impersonation', []))
+        legitimate_count = len(analysis.get('legitimate_indicators', []))
         
         total_indicators = bec_count + tech_scam_count + credential_count + url_count + urgency_count + financial_count + brand_count
         
-        # BOOST PHISHING PROBABILITY IF STRONG INDICATORS PRESENT
         original_phishing_prob = phishing_prob
-        if total_indicators >= 3:
-            # 3+ indicators = strong phishing signal, boost probability
-            boost_factor = min(0.4, total_indicators * 0.1)  # Up to 40% boost
-            phishing_prob = min(0.99, phishing_prob + boost_factor)
-            prediction = 1  # Force phishing prediction
-            print(f"[+] Indicator boost applied: {total_indicators} indicators detected, phishing_prob: {original_phishing_prob:.3f} -> {phishing_prob:.3f}")
-            
-        elif total_indicators >= 2 and phishing_prob >= 0.4:
-            # 2+ indicators with reasonable phishing prob = boost
-            boost_factor = min(0.25, total_indicators * 0.08)
+        
+        # RULE 1: If legitimate indicators present, prioritize them
+        if legitimate_count >= 2:
+            # Strong legitimate patterns detected - reduce phishing probability
+            reduction_factor = min(0.3, legitimate_count * 0.15)
+            phishing_prob = max(0.1, phishing_prob - reduction_factor)
+            prediction = 0 if phishing_prob < 0.5 else 1
+            print(f"[+] Legitimate email detected: {legitimate_count} legitimate indicators, reduced phishing_prob to {phishing_prob:.3f}")
+        
+        # RULE 2: Strong phishing indicators with NO legitimate patterns
+        elif total_indicators >= 4 and legitimate_count == 0:
+            # Very strong phishing signal
+            boost_factor = min(0.35, total_indicators * 0.08)
+            phishing_prob = min(0.98, phishing_prob + boost_factor)
+            prediction = 1
+            print(f"[+] Strong phishing detected: {total_indicators} indicators, boosted to {phishing_prob:.3f}")
+        
+        # RULE 3: Model predicts phishing + multiple indicators
+        elif phishing_prob >= 0.5 and total_indicators >= 3 and legitimate_count == 0:
+            # Model confident + multiple indicators
+            boost_factor = min(0.25, total_indicators * 0.07)
             phishing_prob = min(0.95, phishing_prob + boost_factor)
-            if phishing_prob >= 0.5:
-                prediction = 1
-            print(f"[+] Indicator boost applied: {total_indicators} indicators + prob {original_phishing_prob:.3f}, boosted to {phishing_prob:.3f}")
-                    
-        elif (credential_count >= 1 or bec_count >= 1) and phishing_prob >= 0.3:
-            # Critical indicators (credential/BEC) = significant boost
-            boost_factor = 0.3
-            phishing_prob = min(0.95, phishing_prob + boost_factor)
-            if phishing_prob >= 0.5:
-                prediction = 1
-            print(f"[+] Critical indicator boost: BEC={bec_count}, Credential={credential_count}, boosted to {phishing_prob:.3f}")
-                    
-        elif url_count >= 1 and phishing_prob >= 0.35:
-            # Suspicious URLs = boost
-            boost_factor = 0.2
+            prediction = 1
+            print(f"[+] Phishing confirmed: {total_indicators} indicators, boosted to {phishing_prob:.3f}")
+        
+        # RULE 4: Model leans phishing + 2+ indicators
+        elif phishing_prob >= 0.4 and total_indicators >= 2 and legitimate_count == 0:
+            # Model leans phishing + indicators present
+            boost_factor = min(0.2, total_indicators * 0.06)
             phishing_prob = min(0.90, phishing_prob + boost_factor)
             if phishing_prob >= 0.5:
                 prediction = 1
-            print(f"[+] URL indicator boost: {url_count} suspicious URLs, boosted to {phishing_prob:.3f}")
+            print(f"[+] Phishing likely: {total_indicators} indicators, boosted to {phishing_prob:.3f}")
+        
+        # RULE 5: Critical indicators (BEC/Credential) with model confidence
+        elif (credential_count >= 2 or bec_count >= 2) and phishing_prob >= 0.4 and legitimate_count == 0:
+            # Multiple critical indicators + model confidence
+            boost_factor = 0.2
+            phishing_prob = min(0.95, phishing_prob + boost_factor)
+            if phishing_prob >= 0.5:
+                prediction = 1
+            print(f"[+] Critical indicators: BEC={bec_count}, Credential={credential_count}, boosted to {phishing_prob:.3f}")
         
         # Calculate accurate safety score
         safety_score = calculate_safety_score(phishing_prob, analysis)

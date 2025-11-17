@@ -873,5 +873,30 @@
       "model_confidence": 0.99,
       "reason": "High confidence (0.990)"
     }
+  },
+  {
+    "hash": "812e3dca250eca5952a9b25533a5b553",
+    "text": "Subject: Your Adobe Creative Cloud Subscription Has Been Suspended – Reactivate Now\n\nAdobe Billing & Security Department  \nDate: October 6, 2025\n\nDear [User],\n\nYour Adobe Creative Cloud account has been **temporarily suspended** due to a failed payment authorization on October 5, 2025. To prevent loss of access to your projects and cloud storage, you must update your billing information within the next 24 hours.\n\nOutstanding balance: **$59.99 (1-Month Subscription Renewal)**\n\nUpdate now → https://adobe-cloud-reactivate2025.com/accountupdate\n\nAccounts not reactivated by the deadline will experience:\n- Deletion of cloud-stored assets after 72 hours\n- License cancellation fees ($49.00)\n- Inaccessibility of all software (Photoshop, Illustrator, Premiere Pro, etc.)\n\nYou may safely verify your payment method through our secured system above.\n\nAdobe Support Team  \n©2025 Adobe Systems Inc. | All Rights Reserved",
+    "label": "phishing",
+    "confidence": 0.95,
+    "user_corrected": false,
+    "auto_labeled": true,
+    "confidence_level": "high_confidence",
+    "timestamp": "2025-11-17T12:25:14.138417",
+    "text_length": 916,
+    "model_version": 1.9000000000000008,
+    "analysis_data": {
+      "total_suspicious": 2,
+      "bec": 0,
+      "tech_scam": 0,
+      "credential": 0,
+      "urls": 1,
+      "urgency": 0,
+      "financial": 1,
+      "brand": 0,
+      "phishing_prob": 0.95,
+      "model_confidence": 0.95,
+      "reason": "High confidence (0.950)"
+    }
   }
 ]
