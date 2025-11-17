@@ -10,8 +10,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, roc_auc_score, log_loss
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, cross_validate
 from sklearn.preprocessing import StandardScaler
 import joblib
 import re
@@ -415,6 +415,50 @@ class UltimatePhishingDetector:
             probabilities = np.exp(np.log(np.maximum(probabilities, 1e-15)) / temperature)
             probabilities = probabilities / np.sum(probabilities)
             
+            # ===== CRITICAL FIX: INDICATOR-BASED PROBABILITY ADJUSTMENT =====
+            # Count all suspicious indicators
+            bec_count = len(analysis.get('bec_indicators', []))
+            tech_scam_count = len(analysis.get('tech_scam_indicators', []))
+            credential_count = len(analysis.get('credential_harvesting', []))
+            url_count = len(analysis.get('suspicious_urls', []))
+            urgency_count = len(analysis.get('urgency_indicators', []))
+            financial_count = len(analysis.get('financial_indicators', []))
+            brand_count = len(analysis.get('brand_impersonation', []))
+            
+            total_indicators = bec_count + tech_scam_count + credential_count + url_count + urgency_count + financial_count + brand_count
+            
+            # BOOST PHISHING PROBABILITY IF STRONG INDICATORS PRESENT
+            if total_indicators >= 3:
+                # 3+ indicators = strong phishing signal, boost probability
+                boost_factor = min(0.4, total_indicators * 0.1)  # Up to 40% boost
+                probabilities[1] = min(0.99, probabilities[1] + boost_factor)
+                probabilities[0] = 1 - probabilities[1]
+                prediction = 1  # Force phishing prediction
+                
+            elif total_indicators >= 2 and probabilities[1] >= 0.4:
+                # 2+ indicators with reasonable phishing prob = boost
+                boost_factor = min(0.25, total_indicators * 0.08)
+                probabilities[1] = min(0.95, probabilities[1] + boost_factor)
+                probabilities[0] = 1 - probabilities[1]
+                if probabilities[1] >= 0.5:
+                    prediction = 1
+                    
+            elif (credential_count >= 1 or bec_count >= 1) and probabilities[1] >= 0.3:
+                # Critical indicators (credential/BEC) = significant boost
+                boost_factor = 0.3
+                probabilities[1] = min(0.95, probabilities[1] + boost_factor)
+                probabilities[0] = 1 - probabilities[1]
+                if probabilities[1] >= 0.5:
+                    prediction = 1
+                    
+            elif url_count >= 1 and probabilities[1] >= 0.35:
+                # Suspicious URLs = boost
+                boost_factor = 0.2
+                probabilities[1] = min(0.90, probabilities[1] + boost_factor)
+                probabilities[0] = 1 - probabilities[1]
+                if probabilities[1] >= 0.5:
+                    prediction = 1
+            
             # Add confidence level based on probability difference
             confidence = abs(probabilities[1] - 0.5) * 2  # 0 to 1 scale
             
@@ -424,7 +468,9 @@ class UltimatePhishingDetector:
                 'prediction': 'phishing' if prediction == 1 else 'legitimate',
                 'phishing_probability': float(probabilities[1]),
                 'features_used': len([f for f in features if f != 0]),
-                'model_version': self.model_version
+                'model_version': self.model_version,
+                'total_indicators': total_indicators,
+                'indicator_boost_applied': total_indicators >= 2
             })
             
             if return_analysis:
